@@ -2,9 +2,6 @@
 
 > **Hakiki** (Swahili: *verify, validate*) checks every Social Health Authority (SHA) claim **before** a facility submits it, and explains, step by step, exactly which rule it would fail and how to fix it. The reasoning runs on **MeTTa / OpenCog Hyperon**, so every decision is a transparent, reproducible logic trace instead of a black box.
 
-**Hackathon:** State of the Art Hackathon — BASIX Omniversity Incubator
-**Track:** MeTTa Foundation · **Challenge:** The Glass Box Agent
-
 ---
 
 ## 1. The Problem
