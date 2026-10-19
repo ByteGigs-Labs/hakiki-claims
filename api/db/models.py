@@ -113,4 +113,23 @@ class ClaimChecked(Base):
     rulebook_version: Mapped[str] = mapped_column(String(50))
     trace_hash: Mapped[str] = mapped_column(String(71))
     audit_id: Mapped[int] = mapped_column(ForeignKey("audit_log.id"))
+    row_number: Mapped[int | None]
+    failing_rules: Mapped[list] = mapped_column(JSONB)
     checked_at: Mapped[datetime] = _created_at()
+
+
+class Batch(Base):
+    __tablename__ = "batches"
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"), index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    filename: Mapped[str] = mapped_column(String(100))
+    status: Mapped[str] = mapped_column(String(12))
+    total: Mapped[int]
+    processed: Mapped[int] = mapped_column(default=0)
+    claims: Mapped[list] = mapped_column(JSONB)
+    errors: Mapped[list] = mapped_column(JSONB)
+    summary: Mapped[dict | None] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = _created_at()
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

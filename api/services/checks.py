@@ -17,6 +17,7 @@ def record_check(
     claim: dict,
     result: dict,
     batch_id: UUID | None = None,
+    row_number: int | None = None,
 ) -> dict:
     payload = {key: value for key, value in result.items() if key not in HASH_FIELDS}
     entry = audit.append(
@@ -27,6 +28,12 @@ def record_check(
             tenant_id=principal.tenant_id,
             user_id=principal.user_id,
             batch_id=batch_id,
+            row_number=row_number,
+            failing_rules=[
+                step["rule"].split("-")[0]
+                for step in payload["trace"]
+                if step["result"] in {"fail", "warn"}
+            ],
             claim_ref=claim["claim_ref"],
             patient_token=claim["patient_token"],
             facility_id=claim["facility_id"],
@@ -77,7 +84,11 @@ def prior_claims(db: Session, principal: Principal, claim: dict) -> list[dict]:
 
 
 def check_and_record(
-    db: Session, principal: Principal, claim: dict, batch_id: UUID | None = None
+    db: Session,
+    principal: Principal,
+    claim: dict,
+    batch_id: UUID | None = None,
+    row_number: int | None = None,
 ) -> dict:
     result = engine.check(claim, prior_claims(db, principal, claim))
-    return record_check(db, principal, claim, result, batch_id)
+    return record_check(db, principal, claim, result, batch_id, row_number)

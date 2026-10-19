@@ -1,8 +1,8 @@
 import pytest
 from sqlalchemy import func, select
 
-from api.db.models import Tenant, User
-from scripts.seed import ensure_demo_user
+from api.db.models import ClaimChecked, Tenant, User
+from scripts.seed import ensure_demo_user, load_synthetic_claims
 
 
 @pytest.fixture(autouse=True)
@@ -26,3 +26,10 @@ def test_seed_is_idempotent(db):
     ensure_demo_user(db)
     assert db.scalar(select(func.count()).select_from(User)) == 1
     assert db.scalar(select(func.count()).select_from(Tenant)) == 1
+
+
+def test_seed_loads_the_synthetic_claims_once(db):
+    user = ensure_demo_user(db)
+    assert load_synthetic_claims(db, user) == 40
+    assert load_synthetic_claims(db, user) == 0
+    assert db.scalar(select(func.count()).select_from(ClaimChecked)) == 40

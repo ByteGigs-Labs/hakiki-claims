@@ -3,6 +3,7 @@ import json
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
+from string import Formatter
 
 from hyperon import ExpressionAtom, GroundedAtom, MeTTa, SymbolAtom
 
@@ -119,9 +120,23 @@ def _context(claim: dict, result: RuleResult) -> dict:
     }
 
 
-def render_fact(kb: KnowledgeBase, claim: dict, result: RuleResult, language: str = "en") -> str:
-    message = kb.rule(result.rule)["messages"][f"{result.outcome}.{result.reason}"][language]
-    return message.format_map(_context(claim, result))
+def _message(kb: KnowledgeBase, result: RuleResult, language: str) -> str:
+    return kb.rule(result.rule)["messages"][f"{result.outcome}.{result.reason}"][language]
+
+
+def _used_values(kb: KnowledgeBase, claim: dict, result: RuleResult) -> dict:
+    fields = {
+        name
+        for language in ("en", "sw")
+        for _, name, _, _ in Formatter().parse(_message(kb, result, language))
+        if name
+    }
+    context = _context(claim, result)
+    return {name: context[name] for name in sorted(fields)}
+
+
+def render_fact(kb: KnowledgeBase, claim: dict, result: RuleResult) -> str:
+    return _message(kb, result, "en").format_map(_context(claim, result))
 
 
 def revenue_at_risk(claim: dict, evaluation: Evaluation) -> int | float:
@@ -141,6 +156,8 @@ def build_trace(kb: KnowledgeBase, claim: dict, evaluation: Evaluation) -> list[
             "result": result.outcome,
             "fact": render_fact(kb, claim, result),
             "citation": f"kb/citations.json#{result.rule}",
+            "reason": result.reason,
+            "values": _used_values(kb, claim, result),
         }
         if result.outcome != "skip":
             step["stv"] = [result.strength, result.confidence]

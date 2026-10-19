@@ -11,6 +11,9 @@ COPY migrations migrations
 COPY api api
 COPY ingest ingest
 COPY reasoner reasoner
+COPY narrator narrator
+COPY kb kb
+COPY data data
 COPY scripts scripts
 
 RUN useradd --system --no-create-home hakiki

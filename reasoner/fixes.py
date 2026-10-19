@@ -51,10 +51,11 @@ def find_fixes(claim: dict, history: Sequence[dict], evaluation, kb: KnowledgeBa
         repaired = next(item for item in outcome.results if item.rule == result.rule)
         if repaired.outcome != "pass":
             continue
-        template = kb.rule(result.rule)["fixes"][result.fix[0]]["en"]
+        template = kb.rule(result.rule)["fixes"][result.fix[0]]
         fixes.append(
             {
-                "action": template.format_map(labels),
+                "action": template["en"].format_map(labels),
+                "action_sw": template["sw"].format_map(labels),
                 "flips_to": outcome.verdict,
                 "rule": result.rule,
                 "patch": patch,

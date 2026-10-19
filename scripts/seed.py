@@ -1,11 +1,17 @@
 import os
+from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from api.db.models import Tenant, User
+from api.db.models import ClaimChecked, Tenant, User
 from api.db.session import get_engine
-from api.security import Role, hash_password
+from api.security import Principal, Role, hash_password
+from api.services.checks import check_and_record
+from ingest.csv_import import parse_csv
+
+SYNTHETIC_CLAIMS = Path(__file__).resolve().parent.parent / "data" / "synthetic" / "claims.csv"
+SEED_MAX_ROWS = 1000
 
 
 def ensure_demo_user(db: Session) -> User:
@@ -30,6 +36,22 @@ def ensure_demo_user(db: Session) -> User:
     return user
 
 
+def load_synthetic_claims(db: Session, user: User) -> int:
+    already_loaded = db.scalar(
+        select(func.count())
+        .select_from(ClaimChecked)
+        .where(ClaimChecked.tenant_id == user.tenant_id)
+    )
+    if already_loaded:
+        return 0
+    principal = Principal(user.id, user.tenant_id, user.name, "", Role(user.role))
+    parsed = parse_csv(SYNTHETIC_CLAIMS.read_bytes(), SEED_MAX_ROWS)
+    for item in parsed.claims:
+        check_and_record(db, principal, item["claim"], row_number=item["row"])
+    db.commit()
+    return len(parsed.claims)
+
+
 if __name__ == "__main__":
     with Session(get_engine()) as session:
-        ensure_demo_user(session)
+        load_synthetic_claims(session, ensure_demo_user(session))
