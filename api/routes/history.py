@@ -38,7 +38,7 @@ def list_claims(
     start: int = Query(0, alias="_start", ge=0),
     end: int = Query(10, alias="_end", ge=1),
     sort: SortField = Query("checked_at", alias="_sort"),
-    order: Literal["ASC", "DESC"] = Query("DESC", alias="_order"),
+    order: str = Query("DESC", alias="_order", pattern="^(?i:asc|desc)$"),
     principal: Principal = Depends(current_principal),
     db: Session = Depends(get_db),
 ) -> list[ClaimRow]:
@@ -49,7 +49,7 @@ def list_claims(
     rows = db.scalars(
         select(ClaimChecked)
         .where(scope)
-        .order_by(column.asc() if order == "ASC" else column.desc(), ClaimChecked.id)
+        .order_by(column.asc() if order.upper() == "ASC" else column.desc(), ClaimChecked.id)
         .offset(start)
         .limit(end - start)
     )

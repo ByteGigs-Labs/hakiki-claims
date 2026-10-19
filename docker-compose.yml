@@ -43,5 +43,16 @@ services:
       timeout: 3s
       retries: 10
 
+  dashboard:
+    restart: unless-stopped
+    build:
+      context: dashboard
+      args:
+        VITE_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+
 volumes:
   pgdata:

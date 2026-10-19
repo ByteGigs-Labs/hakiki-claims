@@ -1,0 +1,88 @@
+.batch__intake {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) 1.4fr;
+  gap: 20px;
+}
+
+.batch__step {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 30px;
+  border-radius: var(--radius-l);
+}
+
+.batch__step h2 {
+  font-size: 1.8rem;
+}
+
+.batch__step p {
+  color: var(--slate);
+}
+
+.batch__step .btn {
+  justify-self: start;
+  margin-top: 6px;
+}
+
+.batch__step--drop {
+  align-content: center;
+}
+
+.batch__no {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.batch__results {
+  display: grid;
+  gap: 28px;
+}
+
+.batch__meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.batch__time {
+  color: var(--slate);
+  font-size: 13.5px;
+}
+
+.batch__skipped {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 22px;
+  color: var(--graphite);
+  font-size: 14px;
+}
+
+.recent {
+  display: grid;
+  gap: 12px;
+}
+
+.recent ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 900px) {
+  .batch__intake {
+    grid-template-columns: 1fr;
+  }
+}

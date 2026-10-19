@@ -217,7 +217,7 @@ git clone https://github.com/ByteGigs-Labs/hakiki-claims.git
 cd hakiki-claims
 cp .env.example .env              # set secrets; never commit .env
 
-# Everything in containers (API on :8000)
+# Everything in containers (API on :8000, dashboard on :8080)
 docker compose up --build
 docker compose exec api python -m scripts.seed      # demo user + 40 synthetic claims
 ```
@@ -233,6 +233,8 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres re
 alembic upgrade head
 uvicorn api.main:app --reload
 pytest                              # needs the dev Postgres + Redis above
+
+cd dashboard && npm install && npm run dev   # http://localhost:5173
 ```
 
 Check a synthetic claim from the command line:

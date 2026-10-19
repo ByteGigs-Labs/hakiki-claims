@@ -1,0 +1,160 @@
+.login {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  min-height: 100vh;
+}
+
+.login__story {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(28px, 5vw, 72px);
+  overflow: hidden;
+}
+
+.login__copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 24px;
+  max-width: 620px;
+}
+
+.login__copy h1 {
+  font-size: clamp(2.8rem, 5.6vw, 5.2rem);
+  line-height: 1.02;
+}
+
+.login__copy em {
+  font-style: italic;
+  font-weight: 350;
+}
+
+.login__lede {
+  max-width: 44ch;
+  color: var(--slate);
+  font-size: 18px;
+}
+
+.login__cube {
+  position: absolute;
+  top: 5%;
+  right: 4%;
+  width: min(26vw, 340px);
+  color: var(--ink);
+  opacity: 0.92;
+}
+
+.glass-cube__edge {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 2.4s 0.4s var(--ease-out) forwards;
+}
+
+.glass-cube__edge--inner {
+  stroke-opacity: 0.5;
+  animation-delay: 1.2s;
+}
+
+.glass-cube__face {
+  animation: fade 1.6s 0.2s both;
+}
+
+.glass-cube__dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    pop 0.8s 1.8s var(--ease-spring) both,
+    pulse 3.6s 2.6s ease-in-out infinite;
+}
+
+.glass-cube__dot--b {
+  animation-delay: 2s, 3s;
+}
+
+.glass-cube__dot--c {
+  animation-delay: 2.2s, 3.4s;
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(1.5);
+    opacity: 0.55;
+  }
+}
+
+.glass-cube__shape {
+  animation: float 9s ease-in-out infinite;
+  transform-origin: 200px 200px;
+}
+
+@keyframes float {
+  50% {
+    transform: translateY(-10px) rotate(1.2deg);
+  }
+}
+
+.login__panel {
+  display: grid;
+  place-items: center;
+  padding: 32px clamp(20px, 4vw, 64px);
+}
+
+.login__form {
+  display: grid;
+  gap: 22px;
+  width: min(440px, 100%);
+  padding: clamp(28px, 4vw, 44px);
+}
+
+.login__form h2 {
+  margin-top: 6px;
+  font-size: 2.4rem;
+}
+
+.login__error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-s);
+  background: repeating-linear-gradient(135deg, var(--sunk) 0 7px, var(--veil-strong) 7px 8px);
+  font-weight: 600;
+  font-size: 14px;
+  animation: shake 0.5s var(--ease-out);
+}
+
+@keyframes shake {
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+
+.login__fine {
+  text-align: center;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+@media (max-width: 900px) {
+  .login {
+    grid-template-columns: 1fr;
+  }
+
+  .login__story {
+    min-height: 56vh;
+  }
+
+  .login__cube {
+    width: 38vw;
+    top: 4%;
+    right: 6%;
+    opacity: 0.55;
+  }
+}

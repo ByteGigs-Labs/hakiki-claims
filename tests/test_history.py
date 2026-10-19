@@ -61,6 +61,18 @@ def test_sorts_by_allowed_fields(client, db, make_user, login, claim, result):
     assert ascending == sorted(ascending) and descending == ascending[::-1]
 
 
+def test_sort_direction_is_case_insensitive_for_refine(client, db, make_user, login, claim, result):
+    user = make_user()
+    seed(db, user, claim, result, 3)
+    session = login(user)
+
+    def amounts(order: str) -> list:
+        response = session.get("/v1/claims", params={"_sort": "amount_kes", "_order": order})
+        return [row["amount_kes"] for row in response.json()]
+
+    assert amounts("asc") == amounts("ASC") == amounts("desc")[::-1]
+
+
 def test_rejects_unlisted_sort_fields(client, make_user, login):
     session = login(make_user())
     assert session.get("/v1/claims", params={"_sort": "patient_token"}).status_code == 422
