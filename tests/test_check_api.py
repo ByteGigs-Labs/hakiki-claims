@@ -105,3 +105,28 @@ def test_citation_endpoint_returns_the_source_for_a_rule(client, make_user, logi
     assert session.get("/v1/citations/R99").status_code == 404
     client.cookies.clear()
     assert client.get("/v1/citations/R3").status_code == 401
+
+
+def test_reference_data_lists_facilities_services_and_rules(client, make_user, login):
+    session = login(make_user())
+    data = session.get("/v1/reference").json()
+    assert data["rulebook_version"] == "sha-rules-2026.10.0"
+    mercy = next(f for f in data["facilities"] if f["id"] == "fac-12")
+    assert (mercy["level"], mercy["funds"]) == (4, ["ECCIF", "PHC", "SHIF"])
+    cs = next(s for s in data["services"] if s["id"] == "svc-CS-01")
+    assert cs["requires_preauth"] is True and cs["funds"] == ["SHIF"]
+    assert [rule["id"] for rule in data["rules"]] == ["R1", "R2", "R3", "R4", "R5", "R6", "R8"]
+    client.cookies.clear()
+    assert client.get("/v1/reference").status_code == 401
+
+
+def test_stored_check_can_be_reopened_by_hash_within_the_tenant(
+    client, make_user, make_tenant, login
+):
+    session = login(make_user("a@a.test", make_tenant("A")))
+    created = session.post("/v1/claims/check", json=BODY).json()
+    reopened = session.get(f"/v1/audit/entries/{created['trace_hash']}").json()
+    assert reopened == created
+    client.cookies.clear()
+    other = login(make_user("b@b.test", make_tenant("B")))
+    assert other.get(f"/v1/audit/entries/{created['trace_hash']}").status_code == 404

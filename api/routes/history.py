@@ -22,10 +22,13 @@ class ClaimRow(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
+    claim_ref: str
     service_code: str
     fund: str
     amount_kes: Decimal
     verdict: str
+    revenue_at_risk_kes: Decimal
+    trace_hash: str
     checked_at: datetime
 
 

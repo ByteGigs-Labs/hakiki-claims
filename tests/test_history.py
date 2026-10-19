@@ -24,7 +24,17 @@ def test_lists_rows_in_the_refine_shape(client, db, make_user, login, claim, res
     seed(db, user, claim, result, 2)
     response = login(user).get("/v1/claims")
     row = response.json()[0]
-    assert set(row) == {"id", "service_code", "fund", "amount_kes", "verdict", "checked_at"}
+    assert set(row) == {
+        "id",
+        "claim_ref",
+        "service_code",
+        "fund",
+        "amount_kes",
+        "verdict",
+        "revenue_at_risk_kes",
+        "trace_hash",
+        "checked_at",
+    }
     assert response.headers["x-total-count"] == "2"
 
 

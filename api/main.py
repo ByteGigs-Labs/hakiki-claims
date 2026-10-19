@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.config import get_settings
 from api.errors import install_error_handlers
 from api.limits import BodySizeLimit
-from api.routes import audit, auth, batch, citations, claims, history
+from api.routes import audit, auth, batch, citations, claims, history, reference
 
 
 def create_app() -> FastAPI:
@@ -19,7 +19,7 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(BodySizeLimit, upload_prefixes=("/v1/claims/batch",))
     install_error_handlers(app)
-    for module in (auth, batch, claims, history, citations, audit):
+    for module in (auth, batch, claims, history, citations, reference, audit):
         app.include_router(module.router)
 
     @app.get("/health")
