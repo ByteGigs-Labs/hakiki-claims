@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HOME=/home/hakiki
 WORKDIR /app
 
 COPY requirements.txt .
@@ -16,7 +16,7 @@ COPY kb kb
 COPY data data
 COPY scripts scripts
 
-RUN useradd --system --no-create-home hakiki
+RUN useradd --system --create-home hakiki
 USER hakiki
 
 EXPOSE 8000

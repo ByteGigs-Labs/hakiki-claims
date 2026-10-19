@@ -22,6 +22,7 @@ services:
       retries: 10
 
   api:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: api/Dockerfile
