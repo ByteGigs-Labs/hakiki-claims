@@ -1,5 +1,5 @@
 import hashlib
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Literal, Self
 from zoneinfo import ZoneInfo
@@ -13,6 +13,7 @@ PREAUTH_REFERENCE = r"^[A-Za-z0-9][A-Za-z0-9/_-]{2,39}$"
 ICD_CODE = r"^[A-Z][0-9]{2}(\.[0-9A-Z]{1,4})?$"
 SHA_LAUNCH = date(2024, 10, 1)
 MAX_AMOUNT_KES = Decimal("10000000")
+MAX_LODGING_LEAD_DAYS = 30
 
 Fund = Literal["PHC", "SHIF", "ECCIF"]
 MemberStatus = Literal["active", "inactive", "unknown"]
@@ -38,6 +39,10 @@ class ClaimInput(BaseModel):
     preauth_ref: str | None = Field(None, pattern=PREAUTH_REFERENCE)
     icd_code: str | None = Field(None, pattern=ICD_CODE)
     member_status: MemberStatus = "unknown"
+    emergency: bool = False
+    referral_ref: str | None = Field(None, pattern=PREAUTH_REFERENCE)
+    discharge_date: date | None = None
+    lodging_date: date | None = None
 
     @field_validator(
         "claim_ref", "patient_token", "patient_id", "preauth_ref", "icd_code", mode="before"
@@ -52,6 +57,23 @@ class ClaimInput(BaseModel):
         if value < SHA_LAUNCH or value > today_in_kenya():
             raise ValueError("date_of_service must be between 2024-10-01 and today")
         return value
+
+    @field_validator("discharge_date")
+    @classmethod
+    def plausible_discharge(cls, value: date | None) -> date | None:
+        if value is not None and (value < SHA_LAUNCH or value > today_in_kenya()):
+            raise ValueError("discharge_date must be between 2024-10-01 and today")
+        return value
+
+    @model_validator(mode="after")
+    def consistent_dates(self) -> Self:
+        if self.discharge_date and self.discharge_date < self.date_of_service:
+            raise ValueError("discharge_date cannot be before date_of_service")
+        earliest = self.discharge_date or self.date_of_service
+        latest = today_in_kenya() + timedelta(days=MAX_LODGING_LEAD_DAYS)
+        if self.lodging_date and not earliest <= self.lodging_date <= latest:
+            raise ValueError("lodging_date must fall between discharge and 30 days from today")
+        return self
 
     @model_validator(mode="after")
     def pseudonymise_patient(self) -> Self:
@@ -78,4 +100,8 @@ class ClaimInput(BaseModel):
             "preauth_ref": self.preauth_ref,
             "icd_code": self.icd_code,
             "member_status": self.member_status,
+            "emergency": self.emergency,
+            "referral_ref": self.referral_ref,
+            "discharge_date": self.discharge_date.isoformat() if self.discharge_date else None,
+            "lodging_date": (self.lodging_date or today_in_kenya()).isoformat(),
         }

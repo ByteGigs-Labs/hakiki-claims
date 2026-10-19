@@ -132,6 +132,8 @@ def _used_values(kb: KnowledgeBase, claim: dict, result: RuleResult) -> dict:
         if name
     }
     context = _context(claim, result)
+    if "basis" in context:
+        fields.add("basis")
     return {name: context[name] for name in sorted(fields)}
 
 

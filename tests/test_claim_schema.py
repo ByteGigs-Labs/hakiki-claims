@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from ingest.claim_schema import ClaimInput
+from ingest.claim_schema import ClaimInput, today_in_kenya
 from ingest.pseudonymise import patient_token
 
 VALID = {
@@ -74,3 +74,34 @@ def test_invalid_claims_are_rejected(overrides):
 def test_blank_optional_fields_count_as_missing():
     claim = parse(preauth_ref="  ", icd_code="").to_claim()
     assert claim["preauth_ref"] is None and claim["icd_code"] is None
+
+
+def test_new_claim_fields_reach_the_engine_input():
+    claim = parse(
+        emergency=True,
+        referral_ref="REF-5521",
+        discharge_date="2026-10-15",
+        lodging_date="2026-10-17",
+    ).to_claim()
+    assert claim["emergency"] is True and claim["referral_ref"] == "REF-5521"
+    assert (claim["discharge_date"], claim["lodging_date"]) == ("2026-10-15", "2026-10-17")
+
+
+def test_lodging_date_defaults_to_today_in_kenya():
+    assert parse().to_claim()["lodging_date"] == today_in_kenya().isoformat()
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"discharge_date": "2026-10-13"},
+        {"discharge_date": "2999-01-01"},
+        {"lodging_date": "2026-10-13"},
+        {"lodging_date": "2999-01-01"},
+        {"referral_ref": "no spaces"},
+        {"emergency": "perhaps"},
+    ],
+)
+def test_invalid_dates_and_referrals_are_rejected(overrides):
+    with pytest.raises(ValidationError):
+        parse(**overrides)

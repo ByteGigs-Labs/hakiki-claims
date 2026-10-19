@@ -10,8 +10,10 @@ from api.db.models import AuditLog, Batch, ClaimChecked
 from reasoner import audit
 
 SYNTHETIC = Path(__file__).resolve().parents[1] / "data" / "synthetic"
+LODGING = "2026-10-15"
 HEADER = (
-    "claim_ref,patient_id,facility_id,service_code,fund,date_of_service,amount_kes,member_status\n"
+    "claim_ref,patient_id,facility_id,service_code,fund,date_of_service,amount_kes,"
+    "member_status,icd_code,referral_ref,lodging_date\n"
 )
 
 
@@ -23,7 +25,9 @@ def upload(session, content: bytes | str, name: str = "claims.csv", content_type
 def row(
     ref="clm-1", patient="PT-1", service="svc-OPD-01", amount=700, day="2026-10-14", fund="SHIF"
 ):
-    return f"{ref},{patient},fac-12,{service},{fund},{day},{amount},active\n"
+    return (
+        f"{ref},{patient},fac-12,{service},{fund},{day},{amount},active,J06.9,REF-1001,{LODGING}\n"
+    )
 
 
 @pytest.fixture
@@ -38,13 +42,13 @@ def test_synthetic_set_is_processed_and_summarised_as_expected(session):
     expected = list(csv.DictReader((SYNTHETIC / "expected.csv").open()))
     verdicts = Counter(item["verdict"] for item in expected)
     summary = batch["summary"]
-    assert (batch["status"], batch["total"], batch["processed"]) == ("done", 40, 40)
+    assert (batch["status"], batch["total"], batch["processed"]) == ("done", 44, 44)
     assert (summary["pass"], summary["at_risk"], summary["will_fail"]) == (
         verdicts["PASS"],
         verdicts["AT_RISK"],
         verdicts["WILL_FAIL"],
     )
-    assert summary["claims"] == 40 and summary["rows_rejected"] == 0
+    assert summary["claims"] == 44 and summary["rows_rejected"] == 0
     assert summary["revenue_at_risk_kes"] > 0
     assert summary["top_failing_rules"][0]["count"] >= summary["top_failing_rules"][-1]["count"]
 
@@ -58,7 +62,7 @@ def test_rows_can_be_filtered_by_verdict_and_paged(session):
     assert all(item["verdict"] == "WILL_FAIL" and item["failing_rules"] for item in failing.json())
     page = session.get(f"/v1/claims/batch/{batch_id}/rows", params={"_start": 5, "_end": 8})
     assert [item["row_number"] for item in page.json()] == [6, 7, 8]
-    assert page.headers["x-total-count"] == "40"
+    assert page.headers["x-total-count"] == "44"
 
 
 def test_invalid_rows_are_reported_without_echoing_values(session):
@@ -184,7 +188,7 @@ def test_batch_requires_authentication_and_is_rate_limited(client, session, monk
 def test_batch_results_keep_the_audit_chain_valid(session, db):
     upload(session, (SYNTHETIC / "claims.csv").read_bytes())
     tenant_id = db.scalar(select(Batch.tenant_id))
-    assert audit.verify_chain(db, tenant_id).entries == 40
+    assert audit.verify_chain(db, tenant_id).entries == 44
     assert session.get("/v1/audit/verify").json()["valid"] is True
 
 

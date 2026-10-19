@@ -56,15 +56,18 @@ def test_single_claim_hash_is_stable_across_runs():
             "date_of_service": "2026-10-14",
             "amount_kes": 45000,
             "member_status": "active",
+            "icd_code": "O82",
+            "referral_ref": "REF-1001",
+            "lodging_date": "2026-10-15",
         }
     ).to_claim()
     hashes = {audit.trace_hash(engine.check(claim)) for _ in range(3)}
-    assert hashes == {"sha256:dc618fa5150133c49f1d80af9a7319eb90f0d53d2933f947c7ddafbe0c36e138"}
+    assert hashes == {"sha256:bcd3ececb033e369331206405ba5b4b6a79ff3d00b3c0bc396f6c4647788d8ba"}
 
 
-def test_dataset_has_forty_claims_covering_every_rule(outcomes):
-    assert len(outcomes) == 40
+def test_dataset_has_forty_four_claims_covering_every_rule(outcomes):
+    assert len(outcomes) == 44
     failing = {
         s["rule"].split("-")[0] for _, r in outcomes for s in r["trace"] if s["result"] != "pass"
     }
-    assert {"R1", "R2", "R3", "R4", "R5", "R6", "R8"} <= failing
+    assert {f"R{n}" for n in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)} <= failing
