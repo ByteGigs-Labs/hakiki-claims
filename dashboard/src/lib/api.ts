@@ -7,6 +7,7 @@ import type {
   ClaimInput,
   Language,
   Narration,
+  Overview,
   ReferenceData,
   Verdict,
 } from "../types";
@@ -81,3 +82,6 @@ export const errorMessage = (error: unknown, fallback: string) => {
   const body = (error as { response?: { data?: { error?: { message?: string } } } }).response?.data;
   return body?.error?.message ?? fallback;
 };
+
+export const fetchOverview = async (days: number) =>
+  (await http.get<Overview>("/v1/reports/overview", { params: { days } })).data;

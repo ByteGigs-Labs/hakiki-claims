@@ -1,5 +1,5 @@
 import openapi from "../../docs/openapi.json";
-import type { CheckResult, ClaimInput, Fix, TraceStep } from "./types";
+import type { CheckResult, ClaimInput, Fix, Overview, TraceStep } from "./types";
 
 type Keys<T> = Record<keyof T, true>;
 
@@ -53,6 +53,21 @@ const fix: Keys<Fix> = {
   requires_input: true,
 };
 
+const overview: Keys<Overview> = {
+  days: true,
+  since: true,
+  checks: true,
+  claims: true,
+  passing: true,
+  at_risk: true,
+  will_fail: true,
+  revenue_at_risk_kes: true,
+  revenue_protected_kes: true,
+  claims_protected: true,
+  top_failing_rules: true,
+  daily: true,
+};
+
 const schemas = openapi.components.schemas as Record<string, { properties: Record<string, unknown> }>;
 const names = (schema: Record<string, true>) => Object.keys(schema).sort();
 const properties = (name: string) => Object.keys(schemas[name]!.properties).sort();
@@ -63,6 +78,7 @@ describe("types.ts matches the frozen API contract", () => {
     ["CheckResult", checkResult],
     ["TraceStep", traceStep],
     ["Fix", fix],
+    ["Overview", overview],
   ] as const)("%s has the same fields as the OpenAPI schema", (name, keys) => {
     expect(names(keys)).toEqual(properties(name));
   });

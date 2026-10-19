@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { useCountUp } from "../hooks/useCountUp";
 import { kes } from "../lib/format";
 import type { BatchSummary } from "../types";
+import { CauseBars } from "./CauseBars";
 
 export function RevenueCard({ summary }: { summary: BatchSummary }) {
   const [armed, setArmed] = useState(false);
   const revenue = useCountUp(summary.revenue_at_risk_kes, 1500);
   const flagged = summary.at_risk + summary.will_fail;
   const total = Math.max(summary.claims, 1);
-  const topCount = Math.max(...summary.top_failing_rules.map((rule) => rule.count), 1);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setArmed(true));
@@ -39,24 +39,7 @@ export function RevenueCard({ summary }: { summary: BatchSummary }) {
         <li><i className="split__key split__key--fail" /> Will fail <b className="tabular">{summary.will_fail}</b></li>
       </ul>
 
-      {summary.top_failing_rules.length > 0 && (
-        <div className="causes">
-          <p className="eyebrow">Why claims fail</p>
-          <ul>
-            {summary.top_failing_rules.map((rule, index) => (
-              <li key={rule.rule} style={{ "--i": index } as React.CSSProperties}>
-                <span className="causes__label">
-                  <b>{rule.rule}</b> {rule.name}
-                </span>
-                <span className="causes__track">
-                  <span className="causes__bar" style={{ width: armed ? `${(rule.count / topCount) * 100}%` : "0%" }} />
-                </span>
-                <span className="causes__count tabular">{rule.count}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <CauseBars rules={summary.top_failing_rules} />
     </section>
   );
 }

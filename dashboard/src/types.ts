@@ -146,6 +146,21 @@ export interface BatchRow {
   trace_hash: string;
 }
 
+export interface Overview {
+  days: number;
+  since: string;
+  checks: number;
+  claims: number;
+  passing: number;
+  at_risk: number;
+  will_fail: number;
+  revenue_at_risk_kes: number;
+  revenue_protected_kes: number;
+  claims_protected: number;
+  top_failing_rules: { rule: string; name: string; count: number }[];
+  daily: { date: string; checks: number; flagged: number }[];
+}
+
 export interface ApiError {
   error: {
     code: string;

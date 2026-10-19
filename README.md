@@ -4,6 +4,64 @@
 
 ---
 
+## Screenshots
+
+Captured from the seeded demo, so every claim you see is synthetic. Patient identifiers are hashed on arrival and never shown.
+
+### Know before you submit
+
+A claim is checked against the SHA rulebook. The verdict, its truth value and the revenue at risk come first, followed by the smallest change that fixes it.
+
+![Verdict for a caesarean claim with no pre-authorisation, with the fix offered](docs/screenshots/03-verdict.png)
+
+### The glass box
+
+Every verdict shows the eleven checks behind it. The failing rule is hatched, each step carries its truth value, and a placeholder tariff is labelled as one.
+
+![Trace timeline with the failed pre-authorisation rule](docs/screenshots/04-glass-box-trace.png)
+
+Each check links to the SHA regulation it relies on, with the quoted clause and whether it was read in the source document.
+
+![Source drawer quoting Regulation 60 on pre-authorisation](docs/screenshots/05-source-citation.png)
+
+### Fix it, and prove it
+
+Applying the fix re-runs the claim, and the verdict flips to pass. The pre-authorisation field is filled with a placeholder, and the page says so until the clerk enters the real reference.
+
+![The same claim after applying the fix, now passing, with a placeholder warning](docs/screenshots/07-fix-flips-to-pass.png)
+
+### Explained in English or Kiswahili
+
+The explanation is generated from the trace. A language model may phrase it, but a guard discards any text that disagrees with the verdict.
+
+![Explanation of the failed claim in Kiswahili, with the tamper-evident audit log below](docs/screenshots/06-swahili-explanation.png)
+
+### A week of claims in one pass
+
+Upload a CSV and see how many claims would fail, why, and how much revenue is at stake.
+
+![Batch result showing revenue at risk, the verdict split and the rules causing failures](docs/screenshots/08-batch-check.png)
+
+### Revenue protected
+
+Finance managers see what Hakiki caught before SHA did: claims fixed before submission, what is still at risk, and why.
+
+![Overview with revenue protected, revenue at risk, daily activity and failure causes](docs/screenshots/02-overview.png)
+
+### Replay any check
+
+Every check is kept in a hash-chained log. Open one from the history to see exactly how it was decided.
+
+![Claims history with a stored check opened beside it](docs/screenshots/09-history-replay.png)
+
+### Sign in, and on a phone
+
+| Sign in | On a phone |
+|---|---|
+| ![Sign-in page with the glass cube](docs/screenshots/01-login.png) | ![Verdict on a 390px wide screen](docs/screenshots/10-mobile.png) |
+
+---
+
 ## 1. The Problem
 
 Since Kenya moved from NHIF to the **Social Health Authority** (Social Health Insurance Act, 2023), care is financed through three funds:
@@ -231,7 +289,7 @@ cp .env.example .env              # set secrets; never commit .env
 
 # Everything in containers (API on :8000, dashboard on :8080)
 docker compose up --build
-docker compose exec api python -m scripts.seed      # demo user + 40 synthetic claims
+docker compose exec api python -m scripts.seed      # demo user + four weeks of synthetic claims
 ```
 
 ### Local backend development
@@ -273,6 +331,7 @@ All endpoints except `/health` need the session cookie from `POST /v1/auth/login
 | `GET /v1/claims/batch/template` | CSV template |
 | `GET /v1/claims/batch` · `GET /v1/claims/batch/{id}` · `GET /v1/claims/batch/{id}/rows?verdict=` | Batch status, summary and results |
 | `GET /v1/citations/{rule}` | SHA document and section behind a rule |
+| `GET /v1/reports/overview?days=` | Revenue protected and at risk, daily activity and top failure causes (finance managers and admins) |
 | `GET /v1/audit/verify` | Verifies the tenant's hash chain |
 
 ### API contract

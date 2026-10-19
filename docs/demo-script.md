@@ -24,7 +24,11 @@ Run it on the seeded demo account (`python -m scripts.seed`) with synthetic data
 
 Click **Run the same claim again**. "Same claim, same rulebook, identical trace hash. Every check is chained into a tamper-evident log, so a facility can use it when it appeals."
 
-## 2:30 – 3:00 · Evidence, model and ask
+## 2:30 – 2:45 · The money
+
+Open **Overview**: "This is what Hakiki caught before SHA did. Claims fixed before submission are revenue protected, and the rest shows what is still at risk and why."
+
+## 2:45 – 3:00 · Evidence, model and ask
 
 - Read the clinic quote captured in the interviews (add it here once collected).
 - "Health data is pseudonymised on arrival. The rulebook is versioned and every rule cites the regulation it comes from. Pricing starts with a per-facility subscription paid by M-Pesa."

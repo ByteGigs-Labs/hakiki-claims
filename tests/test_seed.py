@@ -28,8 +28,24 @@ def test_seed_is_idempotent(db):
     assert db.scalar(select(func.count()).select_from(Tenant)) == 1
 
 
-def test_seed_loads_the_synthetic_claims_once(db):
+def test_seed_loads_the_synthetic_claims_once_and_spreads_them_over_four_weeks(db):
     user = ensure_demo_user(db)
     assert load_synthetic_claims(db, user) == 44
     assert load_synthetic_claims(db, user) == 0
-    assert db.scalar(select(func.count()).select_from(ClaimChecked)) == 44
+    refs = db.scalars(select(ClaimChecked.claim_ref)).all()
+    assert len(set(refs)) == 44 and len(refs) > 44
+    first, last = db.execute(
+        select(func.min(ClaimChecked.checked_at), func.max(ClaimChecked.checked_at))
+    ).one()
+    assert (last - first).days >= 26
+
+
+def test_seeded_demo_shows_protected_revenue_on_the_overview(db):
+    from api.services.reports import overview
+
+    user = ensure_demo_user(db)
+    load_synthetic_claims(db, user)
+    report = overview(db, user.tenant_id, 30)
+    assert report["claims"] == 44 and report["claims_protected"] >= 5
+    assert report["revenue_protected_kes"] > 0 and report["revenue_at_risk_kes"] > 0
+    assert len({day["date"] for day in report["daily"] if day["checks"]}) >= 20

@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     login_account_per_five_minutes: int = 5
     check_per_minute: int = 60
     batch_per_hour: int = 10
+    demo_tenant_name: str = "Demo Mission Hospital"
+    demo_user_name: str = "Demo Clerk"
+    demo_user_email: str = "clerk@demo.hakiki.test"
+    demo_user_password: SecretStr | None = None
     llm_api_key: SecretStr | None = None
     llm_model: str = "claude-haiku-5-5"
 

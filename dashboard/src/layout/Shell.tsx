@@ -6,7 +6,8 @@ import { Logo } from "../components/Logo";
 import type { Identity } from "../types";
 import "./shell.css";
 
-const NAV: { to: string; label: string; icon: IconName }[] = [
+const NAV: { to: string; label: string; icon: IconName; roles?: Identity["role"][] }[] = [
+  { to: "/overview", label: "Overview", icon: "chart", roles: ["finance_manager", "admin"] },
   { to: "/check", label: "Check claim", icon: "shield" },
   { to: "/batch", label: "Batch check", icon: "upload" },
   { to: "/claims", label: "Claims history", icon: "history" },
@@ -16,8 +17,9 @@ export function Shell() {
   const { data: identity } = useGetIdentity<Identity>();
   const { mutate: logout } = useLogout();
   const location = useLocation();
+  const items = NAV.filter((item) => !item.roles || (identity && item.roles.includes(identity.role)));
   const active = Math.max(
-    NAV.findIndex((item) => location.pathname.startsWith(item.to)),
+    items.findIndex((item) => location.pathname.startsWith(item.to)),
     0,
   );
 
@@ -27,9 +29,9 @@ export function Shell() {
         <NavLink to="/" className="rail__brand" aria-label="Hakiki home">
           <Logo />
         </NavLink>
-        <nav className="rail__nav" style={{ "--active": active, "--count": NAV.length } as React.CSSProperties}>
+        <nav className="rail__nav" style={{ "--active": active, "--count": items.length } as React.CSSProperties}>
           <span className="rail__pill" aria-hidden="true" />
-          {NAV.map((item) => (
+          {items.map((item) => (
             <NavLink key={item.to} to={item.to} className="rail__link">
               <Icon name={item.icon} size={20} />
               <span>{item.label}</span>
