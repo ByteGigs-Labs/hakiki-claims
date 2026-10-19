@@ -1,6 +1,6 @@
 import re
 
-RULE_ID = re.compile(r"\bR\d\b")
+RULE_ID = re.compile(r"\bR\d{1,2}\b")
 LARGE_NUMBER = re.compile(r"\d[\d,]*(?:\.\d+)?")
 LARGE_THRESHOLD = 100
 MAX_LENGTH = 1500

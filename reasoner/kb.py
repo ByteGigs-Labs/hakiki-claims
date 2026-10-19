@@ -5,7 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 
 KB_DIR = Path(__file__).resolve().parent.parent / "kb"
-IMPLEMENTED_RULES = ("R1", "R2", "R3", "R4", "R5", "R6", "R8")
+IMPLEMENTED_RULES = ("R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11")
 
 
 @dataclass(frozen=True)
@@ -14,6 +14,7 @@ class KnowledgeBase:
     citations: dict
     facilities: tuple[dict, ...]
     services: tuple[dict, ...]
+    referral_funds: tuple[str, ...]
     program: str
 
     def rule(self, rule_id: str) -> dict:
@@ -37,6 +38,8 @@ class KnowledgeBase:
             "url": source["url"],
             "effective": rule["effective"],
             "verified": rule["verified"],
+            "quote": rule["quote"],
+            "note": rule["note"],
         }
 
     def contracted(self, facility: dict, fund: str, on: date) -> bool:
@@ -51,6 +54,8 @@ def load_kb(directory: Path = KB_DIR) -> KnowledgeBase:
     def read_json(*parts: str) -> dict:
         return json.loads(directory.joinpath(*parts).read_text())
 
+    services = read_json("reference", "services.json")
+
     programs = [directory / "combine.metta", directory / "rules" / "helpers.metta"]
     programs += sorted(path for path in (directory / "rules").glob("r*.metta"))
     return KnowledgeBase(
@@ -59,8 +64,7 @@ def load_kb(directory: Path = KB_DIR) -> KnowledgeBase:
         facilities=tuple(
             sorted(read_json("reference", "facilities.json")["facilities"], key=lambda f: f["id"])
         ),
-        services=tuple(
-            sorted(read_json("reference", "services.json")["services"], key=lambda s: s["id"])
-        ),
+        services=tuple(sorted(services["services"], key=lambda s: s["id"])),
+        referral_funds=tuple(services["referral_funds"]),
         program="\n".join(path.read_text() for path in programs),
     )

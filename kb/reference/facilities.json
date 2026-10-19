@@ -1,16 +1,12 @@
 {
-  "description": "Synthetic demo facility registry. Levels follow the KEPH classification; contracts are illustrative.",
+  "description": "Synthetic demo facility registry. Levels follow the KEPH classification and contracts are illustrative. Real empanelment data must come from SHA.",
   "facilities": [
     {"id": "fac-02", "name": "Kibera Community Dispensary", "level": 2,
      "contracts": [{"fund": "PHC", "from": "2024-10-01", "to": "2027-06-30"}]},
     {"id": "fac-03", "name": "Ruaraka Health Centre", "level": 3,
-     "contracts": [
-       {"fund": "PHC", "from": "2024-10-01", "to": "2027-06-30"},
-       {"fund": "SHIF", "from": "2024-10-01", "to": "2027-06-30"}]},
+     "contracts": [{"fund": "PHC", "from": "2024-10-01", "to": "2027-06-30"}]},
     {"id": "fac-09", "name": "St. Luke Mission Clinic", "level": 3,
-     "contracts": [
-       {"fund": "PHC", "from": "2024-10-01", "to": "2027-06-30"},
-       {"fund": "SHIF", "from": "2024-10-01", "to": "2026-03-31"}]},
+     "contracts": [{"fund": "PHC", "from": "2024-10-01", "to": "2026-03-31"}]},
     {"id": "fac-12", "name": "Mercy Mission Hospital", "level": 4,
      "contracts": [
        {"fund": "PHC", "from": "2024-10-01", "to": "2027-06-30"},
@@ -18,7 +14,6 @@
        {"fund": "ECCIF", "from": "2025-01-01", "to": "2027-06-30"}]},
     {"id": "fac-15", "name": "Lakeview County Referral Hospital", "level": 5,
      "contracts": [
-       {"fund": "PHC", "from": "2024-10-01", "to": "2027-06-30"},
        {"fund": "SHIF", "from": "2024-10-01", "to": "2027-06-30"},
        {"fund": "ECCIF", "from": "2024-10-01", "to": "2027-06-30"}]}
   ]

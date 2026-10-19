@@ -15,6 +15,10 @@ OPTIONAL_COLUMNS = (
     "preauth_ref",
     "icd_code",
     "member_status",
+    "emergency",
+    "referral_ref",
+    "discharge_date",
+    "lodging_date",
 )
 ALLOWED_COLUMNS = (*REQUIRED_COLUMNS, *OPTIONAL_COLUMNS)
 TEMPLATE_HEADER = (
@@ -25,7 +29,9 @@ TEMPLATE_HEADER = (
     "icd_code",
     "member_status",
 )
-TEMPLATE_EXAMPLE = "clm-001,A1234567,fac-12,svc-CS-01,SHIF,2026-10-14,45000,PA-20931,O82,active"
+TEMPLATE_EXAMPLE = (
+    "clm-001,A1234567,fac-12,svc-CS-01,SHIF,2026-10-14,45000,PA-20931,REF-5521,O82,active,false"
+)
 FILENAME_CHARACTERS = re.compile(r"[^A-Za-z0-9._ -]")
 
 

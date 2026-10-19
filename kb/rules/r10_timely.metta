@@ -1,0 +1,5 @@
+(= (check-r10 $c)
+   (match &self (LodgingDelay $c $days)
+      (if (<= $days 7)
+          (Result R10 pass (stv 1.0 0.85) (detail (reason on_time) (days $days) (allowed 7)))
+          (Result R10 warn (stv 0.7 0.7) (detail (reason late) (days $days) (allowed 7))))))

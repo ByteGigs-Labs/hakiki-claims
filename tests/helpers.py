@@ -9,12 +9,21 @@ DEFAULTS = {
     "date_of_service": "2026-10-14",
     "amount_kes": 700,
     "member_status": "active",
+    "icd_code": "J06.9",
+    "referral_ref": "REF-1001",
+    "lodging_date": "2026-10-15",
 }
 
 
 def make_claim(**overrides) -> dict:
     payload = {**DEFAULTS, **overrides}
     return ClaimInput.model_validate({k: v for k, v in payload.items() if v is not None}).to_claim()
+
+
+def cs_claim(**overrides) -> dict:
+    return make_claim(
+        **{"service_code": "svc-CS-01", "amount_kes": 45000, "icd_code": "O82", **overrides}
+    )
 
 
 def prior(claim_ref: str, day: str, service: str = "svc-OPD-01", patient: str = "pat-77") -> dict:

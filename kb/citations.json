@@ -1,29 +1,27 @@
 {
   "rulebook_version": "sha-rules-2026.10.0",
-  "note": "Demo rulebook. Document names are real SHA instruments; section references marked verified:false must be confirmed against the original text before production use.",
+  "note": "Demo rulebook. Section references were checked against the SHA documents saved in docs/sources. A rule is marked verified:true when its legal basis was read in those documents. Reference data (service catalogue, most tariff caps, facility registry) is illustrative, and each rule's note says what is not covered.",
   "sources": {
     "act": {
       "document": "Social Health Insurance Act, 2023 (No. 16 of 2023)",
       "url": "https://www.sha.go.ke"
     },
-    "general_regulations": {
-      "document": "Social Health Insurance General Regulations, 2023",
-      "url": "https://p4h.world/app/uploads/2024/04/SOCIAL-HEALTH-INSURANCE-GENERAL-REGULATIONS-2023.x23411.pdf"
-    },
     "regulations_2024": {
-      "document": "Social Health Insurance Regulations, 2024 (Legal Notice No. 49 of 2024)",
+      "document": "Social Health Insurance Regulations, 2024 (Legal Notice No. 49 of 2024), Kenya Gazette Supplement No. 60 of 8 March 2024",
       "url": "https://www.ramco.com/hubfs/SHI%20REGULATIONS%202024.pdf.pdf"
     },
-    "tariffs": {
-      "document": "Social Health Insurance (Tariffs for Healthcare Services) Regulations",
+    "phc_annexure": {
+      "document": "SHA Contract, Annexure B1-A: Primary Healthcare Fund Tariffs and Payment Rates",
       "url": "https://www.sha.go.ke/wp-content/uploads/2026/09/ANNEXURE-B1-A-Primary-Healthcare-Fund-Tariffs-Payment-Rates.pdf"
     }
   },
   "rules": {
     "R1": {
       "name": "Member eligibility",
-      "condition": "The patient is a registered member with active contributions, or an exempt category, on the date of service.",
-      "source": "act", "section": "Registration and contributions provisions", "effective": "2024-10-01", "verified": false,
+      "condition": "The patient is a registered member of the Social Health Insurance Fund, with active contributions on the date of service.",
+      "source": "regulations_2024", "section": "Regulations 6(2), 7(1) and 57(2)", "effective": "2024-03-08", "verified": true,
+      "quote": "All benefits under the Act and these Regulations shall be paid where valid claims in respect of a beneficiary of the Social Health Insurance Fund are lodged and approved for payment by the Authority.",
+      "note": "The gazetted text requires registration. The wording about active contributions comes from the draft General Regulations 2023, so the contribution status must be confirmed by the facility on the SHA portal.",
       "messages": {
         "pass.active": {"en": "Member is registered with active contributions on {date}.", "sw": "Mwanachama amesajiliwa na michango yake iko hai tarehe {date}."},
         "fail.inactive": {"en": "Member's contributions are not active on {date}.", "sw": "Michango ya mwanachama haiko hai tarehe {date}."},
@@ -36,8 +34,10 @@
     },
     "R2": {
       "name": "Facility contract",
-      "condition": "The facility holds a contract for the claimed fund that covers the date of service.",
-      "source": "act", "section": "Contracting of healthcare providers", "effective": "2024-10-01", "verified": false,
+      "condition": "Benefits are paid to an empanelled and contracted facility, and the facility's contract for the claimed fund covers the date of service.",
+      "source": "regulations_2024", "section": "Regulation 57(1)", "effective": "2024-03-08", "verified": true,
+      "quote": "The Authority may ... pay benefits to (a) an empanelled and contracted healthcare provider or health facility within or outside Kenya; and (b) any healthcare provider or health facility that has been licensed and certified to provide emergency services in accordance with the benefits package of the Emergency, Chronic and Critical Illness Fund.",
+      "note": "The registry of contracted facilities is synthetic. The emergency-licence route in 57(1)(b) is not modelled.",
       "messages": {
         "pass.contracted": {"en": "Facility {facility} is contracted for {fund} on {date}.", "sw": "Kituo {facility} kina mkataba wa {fund} tarehe {date}."},
         "fail.not_contracted": {"en": "Facility {facility} has no {fund} contract covering {date}.", "sw": "Kituo {facility} hakina mkataba wa {fund} unaohusu tarehe {date}."},
@@ -47,10 +47,13 @@
     },
     "R3": {
       "name": "Pre-authorisation",
-      "condition": "Services that require pre-authorisation carry a valid pre-authorisation reference.",
-      "source": "regulations_2024", "section": "Regulation 60 (Pre-authorisation)", "effective": "2024-03-08", "verified": false,
+      "condition": "Specialised services need an approved pre-authorisation, except in an emergency.",
+      "source": "regulations_2024", "section": "Regulation 60(1) and 60(3)", "effective": "2024-03-08", "verified": true,
+      "quote": "A healthcare provider or health facility shall send an online pre-authorization request to the Authority for the specialized healthcare services as determined by the Authority ... Provided that pre-authorization shall not apply for emergency services.",
+      "note": "SHA decides which services are specialised, and that list was not in the documents. The services marked as needing pre-authorisation here are illustrative. Hakiki checks that a reference is present, not that it is valid.",
       "messages": {
-        "pass.not_required": {"en": "Service {service} does not require pre-authorisation.", "sw": "Huduma {service} haihitaji idhini ya awali."},
+        "pass.not_required": {"en": "Service {service} does not require pre-authorisation under {fund}.", "sw": "Huduma {service} haihitaji idhini ya awali chini ya {fund}."},
+        "pass.emergency_exempt": {"en": "Pre-authorisation does not apply to emergency services.", "sw": "Idhini ya awali haihusu huduma za dharura."},
         "pass.attached": {"en": "Pre-authorisation reference attached for {service}.", "sw": "Nambari ya idhini ya awali imeambatishwa kwa huduma {service}."},
         "fail.missing": {"en": "Service {service} requires pre-authorisation and none is attached.", "sw": "Huduma {service} inahitaji idhini ya awali na hakuna iliyoambatishwa."},
         "skip.unknown_service": {"en": "Not evaluated: service {service} is not in the rulebook.", "sw": "Haikukaguliwa: huduma {service} haipo kwenye kitabu cha kanuni."}
@@ -61,8 +64,10 @@
     },
     "R4": {
       "name": "Benefit coverage",
-      "condition": "The service is part of the benefit package of the fund being claimed against.",
-      "source": "tariffs", "section": "Schedule of services by fund", "effective": "2024-10-01", "verified": false,
+      "condition": "The service is part of the benefits package of the fund being claimed against.",
+      "source": "regulations_2024", "section": "Regulation 7(3), Second Schedule (Primary Healthcare Fund package)", "effective": "2024-03-08", "verified": true,
+      "quote": "The Authority shall, using monies from the Primary Healthcare Fund, purchase from a health facility the primary healthcare services specified in the benefits package set out in the Second Schedule to these Regulations.",
+      "note": "The Second Schedule lists outpatient, inpatient and maternity services as PHC benefits. The service-by-fund list used here is a simplification.",
       "messages": {
         "pass.covered": {"en": "Service {service} is in the {fund} benefit package.", "sw": "Huduma {service} ipo kwenye mfuko wa manufaa wa {fund}."},
         "fail.not_covered": {"en": "Service {service} is not in the {fund} benefit package.", "sw": "Huduma {service} haipo kwenye mfuko wa manufaa wa {fund}."},
@@ -72,13 +77,16 @@
     },
     "R5": {
       "name": "Facility level",
-      "condition": "The facility's KEPH level is high enough to deliver and bill the service.",
-      "source": "tariffs", "section": "Access point (facility level) per service", "effective": "2024-10-01", "verified": false,
+      "condition": "The facility's KEPH level is high enough to deliver the service under the claimed fund.",
+      "source": "regulations_2024", "section": "Regulation 10(c)(ii) and the point of access in the Second Schedule", "effective": "2024-03-08", "verified": true,
+      "quote": "[The Social Health Insurance Fund shall be used to] pay for the provision of quality healthcare services to beneficiaries under the Act offered by empanelled and contracted ... level 4, 5 and 6 health facilities.",
+      "note": "Primary healthcare services are accessed at Levels 2 to 4, and the Social Health Insurance Fund pays Levels 4 to 6. Minimum levels for individual services beyond that are illustrative.",
       "messages": {
-        "pass.level_ok": {"en": "Facility level {level} meets the required level {required}.", "sw": "Kiwango cha kituo {level} kinatosha kwa kiwango kinachohitajika {required}."},
-        "fail.level_low": {"en": "Facility is Level {level} but {service} requires Level {required} or higher.", "sw": "Kituo ni Kiwango {level} lakini {service} inahitaji Kiwango {required} au zaidi."},
+        "pass.level_ok": {"en": "Facility level {level} meets the required level {required} for {fund}.", "sw": "Kiwango cha kituo {level} kinatosha kwa kiwango kinachohitajika {required} cha {fund}."},
+        "fail.level_low": {"en": "Facility is Level {level} but {service} under {fund} requires Level {required} or higher.", "sw": "Kituo ni Kiwango {level} lakini {service} chini ya {fund} inahitaji Kiwango {required} au zaidi."},
         "skip.unknown_facility": {"en": "Not evaluated: facility {facility} is not in the registry.", "sw": "Haikukaguliwa: kituo {facility} hakipo kwenye sajili."},
-        "skip.unknown_service": {"en": "Not evaluated: service {service} is not in the rulebook.", "sw": "Haikukaguliwa: huduma {service} haipo kwenye kitabu cha kanuni."}
+        "skip.unknown_service": {"en": "Not evaluated: service {service} is not in the rulebook.", "sw": "Haikukaguliwa: huduma {service} haipo kwenye kitabu cha kanuni."},
+        "skip.not_in_fund": {"en": "Not evaluated: {service} is not offered under {fund}.", "sw": "Haikukaguliwa: {service} haitolewi chini ya {fund}."}
       },
       "fixes": {
         "route-to-facility": {"en": "Deliver the service at a Level {required}+ facility such as {target}", "sw": "Toa huduma katika kituo cha Kiwango {required}+ kama {target}"}
@@ -86,8 +94,10 @@
     },
     "R6": {
       "name": "Tariff cap",
-      "condition": "The billed amount does not exceed the tariff for the service under the claimed fund.",
-      "source": "tariffs", "section": "Tariff payment rates", "effective": "2024-10-01", "verified": false,
+      "condition": "The billed amount does not exceed the gazetted tariff for the service under the claimed fund.",
+      "source": "phc_annexure", "section": "Annexure B1-A, section 2 (Schedule of rates)", "effective": "2025-01-01", "verified": true,
+      "quote": "Normal delivery and essential newborn care - KES 10,000. Caesarean section and essential newborn care - KES 30,000.",
+      "note": "Only the two Primary Healthcare Fund maternity rates were read from a published document. Every other cap is an illustrative placeholder, and the trace says so. Tariffs are set by the Social Health Insurance (Tariffs for Healthcare Services) Regulations, Legal Notice 56 of 2025 as amended by Legal Notice 78 of 2026, which were not available.",
       "messages": {
         "pass.within_cap": {"en": "Billed KES {amount} is within the KES {cap} tariff.", "sw": "Kiasi kilichotozwa KES {amount} kiko ndani ya ushuru wa KES {cap}."},
         "fail.over_cap": {"en": "Billed KES {amount} exceeds the KES {cap} tariff.", "sw": "Kiasi kilichotozwa KES {amount} kinazidi ushuru wa KES {cap}."},
@@ -99,14 +109,22 @@
     },
     "R7": {
       "name": "Documentation",
-      "condition": "Required documents and fields are present. Planned for a later release.",
-      "source": "regulations_2024", "section": "Claims submission requirements", "effective": "2024-03-08", "verified": false,
-      "implemented": false, "messages": {}, "fixes": {}
+      "condition": "The claim carries the clinical details that Form 3 requires, so the claim can be adjudicated.",
+      "source": "regulations_2024", "section": "Regulation 58(4) (Form 3 contents)", "effective": "2024-03-08", "verified": true,
+      "quote": "The claim ... shall contain information including (a) the Social Health Authority number of the patient; (b) the hospital registration number of the patient; (c) the name, date of birth, gender, address and contact details of the patient; (d) the clinical details of the patient; and (e) amount claimed.",
+      "note": "Hakiki checks that a diagnosis code is present as the clinical detail. It does not receive patient identity fields, by design.",
+      "messages": {
+        "pass.complete": {"en": "A diagnosis code is recorded as the clinical detail.", "sw": "Msimbo wa utambuzi umerekodiwa kama maelezo ya kitabibu."},
+        "warn.no_diagnosis": {"en": "No diagnosis code. Form 3 requires the clinical details of the patient.", "sw": "Hakuna msimbo wa utambuzi. Fomu ya 3 inahitaji maelezo ya kitabibu ya mgonjwa."}
+      },
+      "fixes": {}
     },
     "R8": {
       "name": "Duplicates and frequency",
       "condition": "The claim is not a duplicate of an earlier claim and does not exceed the frequency limit for the service.",
-      "source": "regulations_2024", "section": "Regulation 61 (Adjudication of claims)", "effective": "2024-03-08", "verified": false,
+      "source": "regulations_2024", "section": "Regulation 61(3) (non-compliant claims are not paid or are refunded)", "effective": "2024-03-08", "verified": false,
+      "quote": "Where the independent panel finds that ... the claim is not complaint, the healthcare provider or health facility shall not be paid for the claim.",
+      "note": "The regulations do not define duplicates or frequency limits. These checks follow standard claims-audit practice, and the limits are illustrative.",
       "messages": {
         "pass.unique": {"en": "No earlier claim for the same patient, service and date.", "sw": "Hakuna dai la awali la mgonjwa, huduma na tarehe sawa."},
         "pass.within_limits": {"en": "Frequency for {service} is within the allowed limit.", "sw": "Mara za huduma {service} ziko ndani ya kikomo kinachoruhusiwa."},
@@ -117,9 +135,46 @@
     },
     "R9": {
       "name": "Clinical consistency",
-      "condition": "The diagnosis code is consistent with the service billed. Planned for a later release.",
-      "source": "regulations_2024", "section": "Clinical coding requirements", "effective": "2024-03-08", "verified": false,
-      "implemented": false, "messages": {}, "fixes": {}
+      "condition": "The diagnosis code is consistent with the service billed.",
+      "source": "regulations_2024", "section": "Regulation 59(3)(b) (formularies mapping diagnostics)", "effective": "2024-03-08", "verified": false,
+      "quote": "[The Claims Management Office shall] develop formularies to be used to inform benefits packages development, mapping diagnostics, costing and tariff development.",
+      "note": "SHA's own diagnosis-to-service mapping was not published in the documents. The ICD-10 chapters used here are standard clinical groupings, applied as a warning only.",
+      "messages": {
+        "pass.consistent": {"en": "Diagnosis {icd} is consistent with {service}.", "sw": "Utambuzi {icd} unaendana na huduma {service}."},
+        "pass.not_restricted": {"en": "{service} is not tied to a specific diagnosis group.", "sw": "Huduma {service} haifungamani na kundi maalum la utambuzi."},
+        "warn.inconsistent": {"en": "Diagnosis {icd} does not usually match {service}.", "sw": "Utambuzi {icd} kwa kawaida haulingani na huduma {service}."},
+        "skip.no_diagnosis": {"en": "Not evaluated: no diagnosis code was given.", "sw": "Haikukaguliwa: hakuna msimbo wa utambuzi uliotolewa."},
+        "skip.unknown_service": {"en": "Not evaluated: service {service} is not in the rulebook.", "sw": "Haikukaguliwa: huduma {service} haipo kwenye kitabu cha kanuni."}
+      },
+      "fixes": {}
+    },
+    "R10": {
+      "name": "Timely lodging",
+      "condition": "The claim is lodged within seven days of the patient's discharge.",
+      "source": "regulations_2024", "section": "Regulation 58(1)", "effective": "2024-03-08", "verified": true,
+      "quote": "A healthcare provider or health facility shall, within seven days from the date of discharge of the patient, lodge a claim to the Claims Management Office.",
+      "note": "The regulation sets the duty but not the consequence of lateness, so a late claim is flagged as a risk, not as a certain failure. Outpatient visits use the date of service as the discharge date.",
+      "messages": {
+        "pass.on_time": {"en": "Lodged {days} days after discharge, inside the {allowed}-day window.", "sw": "Imewasilishwa siku {days} baada ya kuruhusiwa, ndani ya dirisha la siku {allowed}."},
+        "warn.late": {"en": "Lodged {days} days after discharge, beyond the {allowed}-day window.", "sw": "Imewasilishwa siku {days} baada ya kuruhusiwa, nje ya dirisha la siku {allowed}."}
+      },
+      "fixes": {}
+    },
+    "R11": {
+      "name": "Referral pathway",
+      "condition": "Social Health Insurance Fund services are purchased on referral from a primary health facility, except in an emergency.",
+      "source": "regulations_2024", "section": "Regulations 6(3), 7(2) and 10(b)", "effective": "2024-03-08", "verified": true,
+      "quote": "[The Social Health Insurance Fund shall be used to] purchase healthcare services from empanelled and contracted healthcare providers and health facilities on referral from primary health facilities.",
+      "note": "Regulation 6(3) points to section 27(1) and (2) of the Act for the detail, and the Act was not available. Hakiki checks that a referral reference is present, not that it is valid.",
+      "messages": {
+        "pass.not_required": {"en": "No referral is needed under {fund}.", "sw": "Hakuna rufaa inayohitajika chini ya {fund}."},
+        "pass.emergency_exempt": {"en": "A referral is not needed for emergency services.", "sw": "Rufaa haihitajiki kwa huduma za dharura."},
+        "pass.attached": {"en": "Referral reference attached for the {fund} claim.", "sw": "Nambari ya rufaa imeambatishwa kwa dai la {fund}."},
+        "warn.missing": {"en": "{fund} services are bought on referral from a primary facility, and no referral is attached.", "sw": "Huduma za {fund} hununuliwa kwa rufaa kutoka kituo cha afya ya msingi, na hakuna rufaa iliyoambatishwa."}
+      },
+      "fixes": {
+        "attach-referral": {"en": "Attach the referral reference from the primary health facility", "sw": "Ambatisha nambari ya rufaa kutoka kituo cha afya ya msingi"}
+      }
     }
   }
 }

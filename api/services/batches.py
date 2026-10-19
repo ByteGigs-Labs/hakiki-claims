@@ -1,9 +1,9 @@
 import logging
 from collections import Counter
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from api.db.models import Batch, ClaimChecked, Tenant, User
@@ -78,3 +78,17 @@ def process_batch(batch_id: UUID) -> None:
         batch.claims = []
         batch.finished_at = datetime.now(UTC)
         db.commit()
+
+
+STALE_AFTER = timedelta(minutes=2)
+
+
+def fail_stale_batches(db: Session, now: datetime | None = None) -> int:
+    cutoff = (now or datetime.now(UTC)) - STALE_AFTER
+    result = db.execute(
+        update(Batch)
+        .where(Batch.status.in_(("queued", "processing")), Batch.created_at < cutoff)
+        .values(status="failed", claims=[], finished_at=datetime.now(UTC))
+    )
+    db.commit()
+    return result.rowcount

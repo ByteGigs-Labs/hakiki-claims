@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from api.db.models import AuditLog
 from api.db.session import get_db
+from api.schemas import CheckResult
 from api.security import Principal, current_principal
 from reasoner import audit
 
@@ -31,7 +32,7 @@ def verify(
     )
 
 
-@router.get("/entries/{trace_hash}")
+@router.get("/entries/{trace_hash}", response_model=CheckResult, response_model_exclude_none=True)
 def stored_check(
     trace_hash: str,
     principal: Principal = Depends(current_principal),

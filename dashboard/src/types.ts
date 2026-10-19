@@ -15,6 +15,10 @@ export interface ClaimInput {
   preauth_ref?: string;
   icd_code?: string;
   member_status?: MemberStatus;
+  emergency?: boolean;
+  referral_ref?: string;
+  discharge_date?: string;
+  lodging_date?: string;
 }
 
 export interface TraceStep {
@@ -64,7 +68,13 @@ export interface ClaimRow {
 export interface ReferenceData {
   rulebook_version: string;
   facilities: { id: string; name: string; level: number; funds: Fund[] }[];
-  services: { id: string; name: string; min_level: number; requires_preauth: boolean; funds: Fund[] }[];
+  services: {
+    id: string;
+    name: string;
+    levels: Partial<Record<Fund, number>>;
+    preauth_funds: Fund[];
+    funds: Fund[];
+  }[];
   rules: { id: string; name: string }[];
 }
 
@@ -84,6 +94,8 @@ export interface Citation {
   url: string;
   effective: string;
   verified: boolean;
+  quote: string;
+  note: string;
 }
 
 export interface Narration {

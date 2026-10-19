@@ -32,11 +32,11 @@ function Body({ rule }: { rule: string }) {
           <dd>{formatDate(data.effective)}</dd>
         </div>
       </dl>
-      {!data.verified && (
-        <p className="citation__note">
-          Section reference pending verification against the original SHA text. Treat this rule as a demonstration.
-        </p>
-      )}
+      <blockquote className="citation__quote">{data.quote}</blockquote>
+      <p className={`citation__note${data.verified ? " citation__note--ok" : ""}`}>
+        <b>{data.verified ? "Legal basis read in the source document." : "Legal basis not found in the source documents."}</b>{" "}
+        {data.note}
+      </p>
       <a className="btn btn--soft" href={data.url} target="_blank" rel="noopener noreferrer">
         <Icon name="link" size={18} /> Open the document
       </a>

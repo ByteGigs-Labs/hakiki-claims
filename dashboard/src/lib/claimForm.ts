@@ -9,8 +9,11 @@ export interface ClaimForm {
   date_of_service: string;
   amount_kes: string;
   member_status: MemberStatus;
+  emergency: boolean;
   preauth_ref: string;
+  referral_ref: string;
   icd_code: string;
+  discharge_date: string;
 }
 
 export type FormErrors = Partial<Record<keyof ClaimForm, string>>;
@@ -35,22 +38,34 @@ export const emptyForm = (): ClaimForm => ({
   date_of_service: todayIso(),
   amount_kes: "",
   member_status: "active",
+  emergency: false,
   preauth_ref: "",
+  referral_ref: "",
   icd_code: "",
+  discharge_date: "",
 });
 
-export const SAMPLE_CLAIM: ClaimForm = {
+const shiftDays = (iso: string, days: number) => {
+  const moment = new Date(`${iso}T00:00:00Z`);
+  moment.setUTCDate(moment.getUTCDate() + days);
+  return moment.toISOString().slice(0, 10);
+};
+
+export const sampleClaim = (today = todayIso()): ClaimForm => ({
   claim_ref: "clm-104",
   patient_id: "DEMO-PATIENT-77",
   facility_id: "fac-12",
   service_code: "svc-CS-01",
   fund: "SHIF",
-  date_of_service: "2026-10-14",
+  date_of_service: shiftDays(today, -2),
   amount_kes: "45000",
   member_status: "active",
+  emergency: false,
   preauth_ref: "",
-  icd_code: "",
-};
+  referral_ref: "REF-7001",
+  icd_code: "O82",
+  discharge_date: "",
+});
 
 export function validate(form: ClaimForm, today = todayIso()): FormErrors {
   const errors: FormErrors = {};
@@ -73,7 +88,14 @@ export function validate(form: ClaimForm, today = todayIso()): FormErrors {
   if (form.preauth_ref && !PREAUTH.test(form.preauth_ref)) {
     errors.preauth_ref = "Letters, numbers, slash, dash or underscore (3–40)";
   }
+  if (form.referral_ref && !PREAUTH.test(form.referral_ref)) {
+    errors.referral_ref = "Letters, numbers, slash, dash or underscore (3–40)";
+  }
   if (form.icd_code && !ICD.test(form.icd_code)) errors.icd_code = "Use an ICD-10 code such as O82";
+  if (form.discharge_date) {
+    if (form.discharge_date < form.date_of_service) errors.discharge_date = "Cannot be before the service date";
+    else if (form.discharge_date > today) errors.discharge_date = "Cannot be in the future";
+  }
   return errors;
 }
 
@@ -88,8 +110,11 @@ export function toPayload(form: ClaimForm): ClaimInput {
     date_of_service: form.date_of_service,
     amount_kes: Number(form.amount_kes),
     member_status: form.member_status,
+    emergency: form.emergency,
     preauth_ref: optional(form.preauth_ref),
+    referral_ref: optional(form.referral_ref),
     icd_code: optional(form.icd_code),
+    discharge_date: optional(form.discharge_date),
   };
 }
 
@@ -97,7 +122,7 @@ export function applyPatch(form: ClaimForm, patch: Partial<ClaimInput>): ClaimFo
   const next = { ...form };
   for (const [key, value] of Object.entries(patch)) {
     if (key in next && value !== undefined) {
-      (next as Record<string, string>)[key] = String(value);
+      (next as Record<string, string | boolean>)[key] = typeof value === "boolean" ? value : String(value);
     }
   }
   return next;

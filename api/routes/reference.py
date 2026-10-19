@@ -24,15 +24,17 @@ def reference_data(_: Principal = Depends(current_principal)) -> dict:
             {
                 "id": service["id"],
                 "name": service["name"],
-                "min_level": service["min_level"],
-                "requires_preauth": service["requires_preauth"],
+                "levels": service["levels"],
+                "preauth_funds": service["preauth_funds"],
                 "funds": sorted(service["tariffs"]),
             }
             for service in kb.services
         ],
         "rules": [
             {"id": rule_id, "name": rule["name"]}
-            for rule_id, rule in sorted(kb.citations["rules"].items())
+            for rule_id, rule in sorted(
+                kb.citations["rules"].items(), key=lambda item: int(item[0][1:])
+            )
             if rule.get("implemented", True)
         ],
     }

@@ -4,15 +4,42 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
+    ignore:
+      # hyperon ships wheels only up to Python 3.12 and its API is still moving, so upgrade it by hand.
+      - dependency-name: hyperon
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+
   - package-ecosystem: npm
     directory: /dashboard
     schedule:
       interval: weekly
+    groups:
+      dashboard:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      # typescript-eslint supports TypeScript below 6.1, and Refine's router adapter needs react-router 7.
+      - dependency-name: typescript
+        versions: [">=6.1.0"]
+      - dependency-name: react-router
+        versions: [">=8.0.0"]
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
   - package-ecosystem: docker
     directory: /api
     schedule:
       interval: weekly
+    ignore:
+      # The image must stay on a Python version that hyperon has wheels for.
+      - dependency-name: python
+        versions: [">=3.13"]

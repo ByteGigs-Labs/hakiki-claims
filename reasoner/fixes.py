@@ -4,6 +4,7 @@ from datetime import date
 from reasoner.kb import KnowledgeBase
 
 PREAUTH_PLACEHOLDER = "PA-PENDING"
+REFERRAL_PLACEHOLDER = "REF-PENDING"
 
 
 def _target_facility(kb: KnowledgeBase, claim: dict, required_level: int) -> str | None:
@@ -22,6 +23,8 @@ def _candidate(kb: KnowledgeBase, claim: dict, result) -> tuple[dict, bool, dict
     code, *args = result.fix
     if code == "attach-preauth":
         return {"preauth_ref": PREAUTH_PLACEHOLDER}, True, {}
+    if code == "attach-referral":
+        return {"referral_ref": REFERRAL_PLACEHOLDER}, True, {}
     if code in {"confirm-contributions", "verify-eligibility"}:
         return {"member_status": "active"}, True, {}
     if code == "reduce-amount":

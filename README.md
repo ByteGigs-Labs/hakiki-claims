@@ -53,21 +53,23 @@ Hakiki sits **between the facility and SHA**. Before a claim goes out, the facil
 
 ## 4. Rejection Rules (v1 rulebook)
 
-Each rule is sourced from official SHA publications (benefit packages, tariffs, facility contracting guidelines). The rulebook is **versioned**, and each rule stores its citation.
+Each rule cites the SHA document and regulation it relies on, with a short quote, in `kb/citations.json`. The documents are saved in `docs/sources/`, and the rulebook is **versioned**.
 
-| ID | Rule family | Example check |
-|---|---|---|
-| `R1` | Member eligibility | Is the patient registered, and are their contributions or means-test status valid on the date of service? |
-| `R2` | Facility eligibility | Is the facility contracted / empanelled for this fund on this date? |
-| `R3` | Pre-authorisation | Does this service need pre-auth, and is a valid pre-auth reference attached? |
-| `R4` | Benefit coverage | Is the intervention in the package for this fund? |
-| `R5` | Facility level | Is the facility's KEPH level allowed to deliver and bill this service? |
-| `R6` | Tariff | Does the billed amount exceed the tariff or cap for this intervention? |
-| `R7` | Documentation | Are the required documents and fields present (diagnosis code, discharge summary, signatures)? |
-| `R8` | Duplicates & frequency | Is this the same patient, service and date as an earlier claim? Has a frequency limit been exceeded? |
-| `R9` | Clinical consistency | Do the diagnosis and procedure match (e.g., ICD code vs intervention)? |
+| ID | Rule family | Check | Legal basis | Read in source |
+|---|---|---|---|---|
+| `R1` | Member eligibility | Is the patient a registered member with active contributions on the date of service? | Regulations 6(2), 7(1), 57(2) | ✅ |
+| `R2` | Facility contract | Is the facility empanelled and contracted for this fund on this date? | Regulation 57(1) | ✅ |
+| `R3` | Pre-authorisation | Does this specialised service need pre-auth, and is a reference attached? Emergencies are exempt. | Regulation 60 | ✅ |
+| `R4` | Benefit coverage | Is the service in the package of the fund being claimed? | Regulation 7(3), Second Schedule | ✅ |
+| `R5` | Facility level | Is the facility's KEPH level high enough under this fund? | Regulation 10(c)(ii), Second Schedule | ✅ |
+| `R6` | Tariff | Does the billed amount exceed the tariff? | Annexure B1-A | ✅ for 2 tariffs, placeholders elsewhere |
+| `R7` | Documentation | Is the clinical detail (diagnosis code) that Form 3 requires present? | Regulation 58(4) | ✅ |
+| `R8` | Duplicates & frequency | Same patient, service and date as an earlier claim? Frequency limit exceeded? | Regulation 61(3) | ❌ practice, not defined in the text |
+| `R9` | Clinical consistency | Does the diagnosis match the service? | Regulation 59(3)(b) | ❌ standard ICD-10 groupings |
+| `R10` | Timely lodging | Is the claim lodged within seven days of discharge? | Regulation 58(1) | ✅ |
+| `R11` | Referral pathway | Is a referral attached for Social Health Insurance Fund services? Emergencies are exempt. | Regulations 6(3), 7(2), 10(b) | ✅ |
 
-> v1 ships with a **demo rulebook** built from public SHA documents, with every rule cited. Facilities must confirm it against the latest SHA circulars before relying on it in production.
+> The rulebook uses real SHA instruments, but the facility registry, the service catalogue and every tariff cap except the two Primary Healthcare Fund maternity rates are illustrative, and the trace marks placeholder caps. `docs/sources/SOURCES.md` lists what was read and what is still missing. Confirm the rulebook against the latest SHA circulars before relying on it in production.
 
 ## 5. How the Glass Box Works
 
@@ -126,6 +128,16 @@ Each rule is sourced from official SHA publications (benefit packages, tariffs, 
 **Reproducible:** the same claim checked against the same `rulebook_version` always gives the same trace and hash. Traces go into a **hash-chained audit log**, which the facility can use when it appeals a rejection.
 
 > **Honesty note:** Hakiki predicts claim outcomes from published rules and observed patterns. It does not replace SHA adjudication. Truth values express calibrated confidence, not guarantees.
+
+## 5.4 Why MeTTa
+
+Claims adjudication is a rules problem with uncertainty and an audit requirement. A clerk and an auditor both need to know *which rule* decided *what*, and a score from a black-box model cannot say that. MeTTa gives Hakiki three things together:
+
+1. **Rules as data.** Each SHA rule is a few lines in `kb/rules/`, next to the regulation it comes from. When a circular changes a rule, the diff is the rule, and the golden tests show exactly which traces moved.
+2. **Uncertainty that composes.** Every result carries a truth value `(stv strength confidence)`, and `kb/combine.metta` folds them into a verdict with a documented formula. Placeholder tariffs lower confidence automatically, so the verdict is honest about what it knows.
+3. **Traceable inference.** The same claim and rulebook version always produce the same trace and the same hash, which is what lets a facility use the log when it appeals a rejection.
+
+The language model is optional and sits outside this loop. It may explain a trace in English or Swahili, and a guard discards any explanation that disagrees with the verdict or names a rule that did not fire.
 
 ## 6. Architecture
 
@@ -262,6 +274,10 @@ All endpoints except `/health` need the session cookie from `POST /v1/auth/login
 | `GET /v1/claims/batch` · `GET /v1/claims/batch/{id}` · `GET /v1/claims/batch/{id}/rows?verdict=` | Batch status, summary and results |
 | `GET /v1/citations/{rule}` | SHA document and section behind a rule |
 | `GET /v1/audit/verify` | Verifies the tenant's hash chain |
+
+### API contract
+
+`docs/openapi.json` is the frozen contract, and `dashboard/src/types.ts` mirrors it. A test fails when either drifts from the other. To change the contract, run `python -m scripts.export_openapi`, update `types.ts`, and get the pull request approved by both owners.
 
 ### How a verdict is produced
 

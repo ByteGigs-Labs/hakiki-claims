@@ -8,12 +8,12 @@ from narrator import service
 from narrator.guard import narration_matches_trace
 from narrator.llm import anthropic_completion
 from reasoner import engine
-from tests.helpers import make_claim
+from tests.helpers import cs_claim, make_claim
 
 
 @pytest.fixture(scope="module")
 def failing():
-    return engine.check(make_claim(service_code="svc-CS-01", amount_kes=45000))
+    return engine.check(cs_claim())
 
 
 @pytest.fixture(scope="module")
@@ -63,7 +63,7 @@ def test_llm_text_is_used_when_it_matches_the_trace(failing):
     [
         ("PASS", GOOD),
         ("WILL_FAIL", "Everything looks fine, submit it."),
-        ("WILL_FAIL", "R3 failed but R7 also failed."),
+        ("WILL_FAIL", "R3 failed but R12 also failed."),
         ("WILL_FAIL", "R3 failed and KES 9,999 is at risk."),
         ("WILL_FAIL", "R3 " + "x" * 2000),
         ("WILL_FAIL", ""),
@@ -168,3 +168,10 @@ def test_explanation_is_tenant_scoped(client, make_user, make_tenant, login):
     client.cookies.clear()
     other = login(make_user("b@b.test", make_tenant("B")))
     assert other.get(f"/v1/claims/{trace_hash}/explanation").status_code == 404
+
+
+def test_two_digit_rule_ids_are_recognised_by_the_guard():
+    late = engine.check(make_claim(lodging_date="2026-10-30"))
+    text = "Rule R10 flags this claim because it was lodged late."
+    assert narration_matches_trace(text, "AT_RISK", late)
+    assert not narration_matches_trace("Everything is fine.", "AT_RISK", late)

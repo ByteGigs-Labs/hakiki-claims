@@ -30,6 +30,6 @@ def test_seed_is_idempotent(db):
 
 def test_seed_loads_the_synthetic_claims_once(db):
     user = ensure_demo_user(db)
-    assert load_synthetic_claims(db, user) == 40
+    assert load_synthetic_claims(db, user) == 44
     assert load_synthetic_claims(db, user) == 0
-    assert db.scalar(select(func.count()).select_from(ClaimChecked)) == 40
+    assert db.scalar(select(func.count()).select_from(ClaimChecked)) == 44
