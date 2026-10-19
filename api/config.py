@@ -14,6 +14,15 @@ class Settings(BaseSettings):
     cookie_name: str = "hakiki_session"
     cookie_secure: bool = True
     session_ttl_hours: int = 12
+    max_body_bytes: int = 64 * 1024
+    max_upload_bytes: int = 2 * 1024 * 1024
+    max_batch_rows: int = 500
+    login_ip_per_minute: int = 20
+    login_account_per_five_minutes: int = 5
+    check_per_minute: int = 60
+    batch_per_hour: int = 10
+    llm_api_key: SecretStr | None = None
+    llm_model: str = "claude-haiku-5-5"
 
     @field_validator("cors_origins")
     @classmethod

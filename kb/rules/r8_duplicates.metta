@@ -1,0 +1,22 @@
+(= (prior-same-event $c)
+   (match &self (, (ClaimPatient $c $p) (ClaimService $c $s) (ClaimDay $c $d) (Prior $other $p $s $d))
+      $other))
+
+(= (prior-in-window $c $days)
+   (match &self (, (ClaimPatient $c $p) (ClaimService $c $s) (ClaimDay $c $d) (Prior $other $p $s $pd))
+      (if (and (<= $pd $d) (> $pd (- $d $days))) $other (empty))))
+
+(= (check-r8-frequency $c)
+   (match &self (ClaimService $c $s)
+      (unify &self (Frequency $s $limit $days)
+         (let* (($items (collapse (prior-in-window $c $days))) ($count (size-atom $items)))
+            (if (>= $count $limit)
+                (Result R8 fail (stv 0.85 0.8) (detail (reason frequency) (count $count) (limit $limit) (window $days)))
+                (Result R8 pass (stv 1.0 0.85) (detail (reason within_limits)))))
+         (Result R8 pass (stv 1.0 0.85) (detail (reason unique))))))
+
+(= (check-r8 $c)
+   (let $same (collapse (prior-same-event $c))
+      (if (== $same ())
+          (check-r8-frequency $c)
+          (Result R8 fail (stv 0.95 0.85) (detail (reason duplicate) (other (car-atom $same)))))))

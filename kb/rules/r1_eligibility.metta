@@ -1,0 +1,7 @@
+(= (check-r1 $c)
+   (match &self (MemberStatus $c $status)
+      (if (== $status active)
+          (Result R1 pass (stv 1.0 0.9) (detail (reason active)))
+          (if (== $status inactive)
+              (Result R1 fail (stv 0.95 0.9) (detail (reason inactive) (fix confirm-contributions)))
+              (Result R1 warn (stv 0.6 0.6) (detail (reason unknown) (fix verify-eligibility)))))))

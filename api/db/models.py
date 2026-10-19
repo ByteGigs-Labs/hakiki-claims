@@ -97,6 +97,7 @@ class ClaimChecked(Base):
     tenant_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tenants.id"))
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
     batch_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    claim_ref: Mapped[str] = mapped_column(String(50))
     patient_token: Mapped[str] = mapped_column(String(64))
     facility_id: Mapped[str] = mapped_column(String(50))
     service_code: Mapped[str] = mapped_column(String(50))

@@ -1,0 +1,8 @@
+(= (check-r6 $c)
+   (match &self (, (ClaimService $c $s) (ClaimFund $c $fund) (ClaimAmount $c $amount))
+      (if (has-fact (Tariff $s $fund $_))
+          (match &self (Tariff $s $fund $cap)
+             (if (<= $amount $cap)
+                 (Result R6 pass (stv 1.0 0.9) (detail (reason within_cap) (cap $cap)))
+                 (Result R6 fail (stv 0.9 0.85) (detail (reason over_cap) (cap $cap) (fix reduce-amount $cap)))))
+          (Result R6 skip (stv 0.0 0.0) (detail (reason no_tariff))))))

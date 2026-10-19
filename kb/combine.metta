@@ -1,0 +1,25 @@
+(= (is-risk $outcome) (or (== $outcome fail) (== $outcome warn)))
+(= (smaller $a $b) (if (< $a $b) $a $b))
+(= (larger $a $b) (if (> $a $b) $a $b))
+
+(= (absorb (Result $rule $outcome (stv $s $c) $detail) (State $keep $top $risks $risk-conf $pass-conf $pass-strength))
+   (if (== $outcome skip)
+       (State $keep $top $risks $risk-conf $pass-conf $pass-strength)
+       (if (is-risk $outcome)
+           (State (* $keep (- 1.0 $s)) (larger $s $top) (+ $risks 1) (smaller $c $risk-conf) $pass-conf $pass-strength)
+           (State $keep $top $risks $risk-conf (smaller $c $pass-conf) (smaller $s $pass-strength)))))
+
+(= (fold-results Nil $state) $state)
+(= (fold-results (Cons $result $rest) $state)
+   (let $next (absorb $result $state) (fold-results $rest $next)))
+
+(= (finish (State $keep $top $risks $risk-conf $pass-conf $pass-strength))
+   (if (>= $top 0.8)
+       (Verdict WILL_FAIL (stv (- 1.0 $keep) $risk-conf))
+       (if (> $risks 0)
+           (Verdict AT_RISK (stv (- 1.0 $keep) $risk-conf))
+           (Verdict PASS (stv $pass-strength $pass-conf)))))
+
+(= (combine $results)
+   (let $state (fold-results $results (State 1.0 0.0 0 1.0 1.0 1.0))
+      (finish $state)))

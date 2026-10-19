@@ -1,0 +1,10 @@
+{
+  "claim_ref": "clm-104",
+  "patient_token": "pat-77",
+  "facility_id": "fac-12",
+  "service_code": "svc-CS-01",
+  "fund": "SHIF",
+  "date_of_service": "2026-10-14",
+  "amount_kes": 45000,
+  "member_status": "active"
+}

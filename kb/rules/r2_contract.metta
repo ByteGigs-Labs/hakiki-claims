@@ -1,0 +1,11 @@
+(= (contracted $fac $fund $day)
+   (match &self (Contract $fac $fund $from $to)
+      (if (and (<= $from $day) (<= $day $to)) True (empty))))
+
+(= (check-r2 $c)
+   (match &self (, (ClaimFacility $c $fac) (ClaimFund $c $fund) (ClaimDay $c $day))
+      (if (has-fact (Facility $fac $_))
+          (if (== (collapse (contracted $fac $fund $day)) ())
+              (Result R2 fail (stv 0.95 0.9) (detail (reason not_contracted)))
+              (Result R2 pass (stv 1.0 0.9) (detail (reason contracted))))
+          (Result R2 warn (stv 0.7 0.5) (detail (reason unknown_facility))))))

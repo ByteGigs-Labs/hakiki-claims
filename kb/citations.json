@@ -1,0 +1,125 @@
+{
+  "rulebook_version": "sha-rules-2026.10.0",
+  "note": "Demo rulebook. Document names are real SHA instruments; section references marked verified:false must be confirmed against the original text before production use.",
+  "sources": {
+    "act": {
+      "document": "Social Health Insurance Act, 2023 (No. 16 of 2023)",
+      "url": "https://www.sha.go.ke"
+    },
+    "general_regulations": {
+      "document": "Social Health Insurance General Regulations, 2023",
+      "url": "https://p4h.world/app/uploads/2024/04/SOCIAL-HEALTH-INSURANCE-GENERAL-REGULATIONS-2023.x23411.pdf"
+    },
+    "regulations_2024": {
+      "document": "Social Health Insurance Regulations, 2024 (Legal Notice No. 49 of 2024)",
+      "url": "https://www.ramco.com/hubfs/SHI%20REGULATIONS%202024.pdf.pdf"
+    },
+    "tariffs": {
+      "document": "Social Health Insurance (Tariffs for Healthcare Services) Regulations",
+      "url": "https://www.sha.go.ke/wp-content/uploads/2026/09/ANNEXURE-B1-A-Primary-Healthcare-Fund-Tariffs-Payment-Rates.pdf"
+    }
+  },
+  "rules": {
+    "R1": {
+      "name": "Member eligibility",
+      "condition": "The patient is a registered member with active contributions, or an exempt category, on the date of service.",
+      "source": "act", "section": "Registration and contributions provisions", "effective": "2024-10-01", "verified": false,
+      "messages": {
+        "pass.active": {"en": "Member is registered with active contributions on {date}.", "sw": "Mwanachama amesajiliwa na michango yake iko hai tarehe {date}."},
+        "fail.inactive": {"en": "Member's contributions are not active on {date}.", "sw": "Michango ya mwanachama haiko hai tarehe {date}."},
+        "warn.unknown": {"en": "Contribution status was not confirmed, so eligibility cannot be verified.", "sw": "Hali ya michango haijathibitishwa, kwa hivyo ustahiki hauwezi kuthibitishwa."}
+      },
+      "fixes": {
+        "confirm-contributions": {"en": "Renew the member's contributions, then confirm them as active", "sw": "Fanya upya michango ya mwanachama kisha uthibitishe kuwa iko hai"},
+        "verify-eligibility": {"en": "Verify the member's eligibility on the SHA portal before submitting", "sw": "Thibitisha ustahiki wa mwanachama kwenye tovuti ya SHA kabla ya kuwasilisha"}
+      }
+    },
+    "R2": {
+      "name": "Facility contract",
+      "condition": "The facility holds a contract for the claimed fund that covers the date of service.",
+      "source": "act", "section": "Contracting of healthcare providers", "effective": "2024-10-01", "verified": false,
+      "messages": {
+        "pass.contracted": {"en": "Facility {facility} is contracted for {fund} on {date}.", "sw": "Kituo {facility} kina mkataba wa {fund} tarehe {date}."},
+        "fail.not_contracted": {"en": "Facility {facility} has no {fund} contract covering {date}.", "sw": "Kituo {facility} hakina mkataba wa {fund} unaohusu tarehe {date}."},
+        "warn.unknown_facility": {"en": "Facility {facility} is not in the registry, so its contract could not be checked.", "sw": "Kituo {facility} hakipo kwenye sajili, kwa hivyo mkataba wake haukuweza kukaguliwa."}
+      },
+      "fixes": {}
+    },
+    "R3": {
+      "name": "Pre-authorisation",
+      "condition": "Services that require pre-authorisation carry a valid pre-authorisation reference.",
+      "source": "regulations_2024", "section": "Regulation 60 (Pre-authorisation)", "effective": "2024-03-08", "verified": false,
+      "messages": {
+        "pass.not_required": {"en": "Service {service} does not require pre-authorisation.", "sw": "Huduma {service} haihitaji idhini ya awali."},
+        "pass.attached": {"en": "Pre-authorisation reference attached for {service}.", "sw": "Nambari ya idhini ya awali imeambatishwa kwa huduma {service}."},
+        "fail.missing": {"en": "Service {service} requires pre-authorisation and none is attached.", "sw": "Huduma {service} inahitaji idhini ya awali na hakuna iliyoambatishwa."},
+        "skip.unknown_service": {"en": "Not evaluated: service {service} is not in the rulebook.", "sw": "Haikukaguliwa: huduma {service} haipo kwenye kitabu cha kanuni."}
+      },
+      "fixes": {
+        "attach-preauth": {"en": "Attach the pre-authorisation reference", "sw": "Ambatisha nambari ya idhini ya awali"}
+      }
+    },
+    "R4": {
+      "name": "Benefit coverage",
+      "condition": "The service is part of the benefit package of the fund being claimed against.",
+      "source": "tariffs", "section": "Schedule of services by fund", "effective": "2024-10-01", "verified": false,
+      "messages": {
+        "pass.covered": {"en": "Service {service} is in the {fund} benefit package.", "sw": "Huduma {service} ipo kwenye mfuko wa manufaa wa {fund}."},
+        "fail.not_covered": {"en": "Service {service} is not in the {fund} benefit package.", "sw": "Huduma {service} haipo kwenye mfuko wa manufaa wa {fund}."},
+        "fail.unknown_service": {"en": "Service code {service} is not in the rulebook, so coverage cannot be confirmed.", "sw": "Msimbo wa huduma {service} haupo kwenye kitabu cha kanuni, kwa hivyo ufadhili hauwezi kuthibitishwa."}
+      },
+      "fixes": {}
+    },
+    "R5": {
+      "name": "Facility level",
+      "condition": "The facility's KEPH level is high enough to deliver and bill the service.",
+      "source": "tariffs", "section": "Access point (facility level) per service", "effective": "2024-10-01", "verified": false,
+      "messages": {
+        "pass.level_ok": {"en": "Facility level {level} meets the required level {required}.", "sw": "Kiwango cha kituo {level} kinatosha kwa kiwango kinachohitajika {required}."},
+        "fail.level_low": {"en": "Facility is Level {level} but {service} requires Level {required} or higher.", "sw": "Kituo ni Kiwango {level} lakini {service} inahitaji Kiwango {required} au zaidi."},
+        "skip.unknown_facility": {"en": "Not evaluated: facility {facility} is not in the registry.", "sw": "Haikukaguliwa: kituo {facility} hakipo kwenye sajili."},
+        "skip.unknown_service": {"en": "Not evaluated: service {service} is not in the rulebook.", "sw": "Haikukaguliwa: huduma {service} haipo kwenye kitabu cha kanuni."}
+      },
+      "fixes": {
+        "route-to-facility": {"en": "Deliver the service at a Level {required}+ facility such as {target}", "sw": "Toa huduma katika kituo cha Kiwango {required}+ kama {target}"}
+      }
+    },
+    "R6": {
+      "name": "Tariff cap",
+      "condition": "The billed amount does not exceed the tariff for the service under the claimed fund.",
+      "source": "tariffs", "section": "Tariff payment rates", "effective": "2024-10-01", "verified": false,
+      "messages": {
+        "pass.within_cap": {"en": "Billed KES {amount} is within the KES {cap} tariff.", "sw": "Kiasi kilichotozwa KES {amount} kiko ndani ya ushuru wa KES {cap}."},
+        "fail.over_cap": {"en": "Billed KES {amount} exceeds the KES {cap} tariff.", "sw": "Kiasi kilichotozwa KES {amount} kinazidi ushuru wa KES {cap}."},
+        "skip.no_tariff": {"en": "Not evaluated: no tariff exists for {service} under {fund}.", "sw": "Haikukaguliwa: hakuna ushuru wa {service} chini ya {fund}."}
+      },
+      "fixes": {
+        "reduce-amount": {"en": "Reduce the billed amount to the KES {cap} tariff", "sw": "Punguza kiasi kilichotozwa hadi ushuru wa KES {cap}"}
+      }
+    },
+    "R7": {
+      "name": "Documentation",
+      "condition": "Required documents and fields are present. Planned for a later release.",
+      "source": "regulations_2024", "section": "Claims submission requirements", "effective": "2024-03-08", "verified": false,
+      "implemented": false, "messages": {}, "fixes": {}
+    },
+    "R8": {
+      "name": "Duplicates and frequency",
+      "condition": "The claim is not a duplicate of an earlier claim and does not exceed the frequency limit for the service.",
+      "source": "regulations_2024", "section": "Regulation 61 (Adjudication of claims)", "effective": "2024-03-08", "verified": false,
+      "messages": {
+        "pass.unique": {"en": "No earlier claim for the same patient, service and date.", "sw": "Hakuna dai la awali la mgonjwa, huduma na tarehe sawa."},
+        "pass.within_limits": {"en": "Frequency for {service} is within the allowed limit.", "sw": "Mara za huduma {service} ziko ndani ya kikomo kinachoruhusiwa."},
+        "fail.duplicate": {"en": "Same patient, service and date as earlier claim {other}.", "sw": "Mgonjwa, huduma na tarehe sawa na dai la awali {other}."},
+        "fail.frequency": {"en": "{count} earlier claims for {service} in {window} days; the limit is {limit}.", "sw": "Madai {count} ya awali ya {service} ndani ya siku {window}; kikomo ni {limit}."}
+      },
+      "fixes": {}
+    },
+    "R9": {
+      "name": "Clinical consistency",
+      "condition": "The diagnosis code is consistent with the service billed. Planned for a later release.",
+      "source": "regulations_2024", "section": "Clinical coding requirements", "effective": "2024-03-08", "verified": false,
+      "implemented": false, "messages": {}, "fixes": {}
+    }
+  }
+}

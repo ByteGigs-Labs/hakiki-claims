@@ -6,6 +6,12 @@ from sqlalchemy.orm import Session
 
 from api.config import get_settings
 from api.db.session import get_db
+from api.ratelimit import (
+    clear_login_failures,
+    ensure_account_not_locked,
+    login_ip_limit,
+    record_login_failure,
+)
 from api.security import Principal, authenticate, create_session, current_principal, end_session
 
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
@@ -41,11 +47,14 @@ def _cookie_options() -> dict:
     }
 
 
-@router.post("/login")
+@router.post("/login", dependencies=[Depends(login_ip_limit)])
 def login(body: LoginRequest, response: Response, db: Session = Depends(get_db)) -> Identity:
+    ensure_account_not_locked(body.email)
     user = authenticate(db, body.email, body.password)
     if not user:
+        record_login_failure(body.email)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
+    clear_login_failures(body.email)
     settings = get_settings()
     response.set_cookie(
         settings.cookie_name,

@@ -7,6 +7,7 @@ TEST_DATABASE_URL = os.environ.get(
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 os.environ["HMAC_KEY"] = "test-hmac-key"
 os.environ["COOKIE_SECURE"] = "false"
+os.environ["REDIS_URL"] = os.environ.get("TEST_REDIS_URL", "redis://127.0.0.1:6380/15")
 os.environ["CORS_ORIGINS"] = '["http://localhost:5173"]'
 
 import pytest  # noqa: E402
@@ -32,6 +33,13 @@ def engine():
     command.upgrade(Config("alembic.ini"), "head")
     yield engine
     engine.dispose()
+
+
+@pytest.fixture(autouse=True)
+def clean_redis():
+    from api.ratelimit import get_redis
+
+    get_redis().flushdb()
 
 
 @pytest.fixture
@@ -99,6 +107,7 @@ def login(client):
 @pytest.fixture
 def claim() -> dict:
     return {
+        "claim_ref": "clm-104",
         "patient_token": "pat-abc",
         "facility_id": "fac-12",
         "service_code": "svc-CS-01",
