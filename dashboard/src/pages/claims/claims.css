@@ -1,0 +1,130 @@
+.ledger {
+  display: grid;
+  gap: 12px;
+}
+
+.ledger__head,
+.ledger__row {
+  display: grid;
+  grid-template-columns: 1.4fr 1.1fr 0.7fr 1fr 1.2fr 40px;
+  align-items: center;
+  gap: 16px;
+}
+
+.ledger__head {
+  padding: 0 24px;
+}
+
+.ledger__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--slate);
+  transition: color 0.25s;
+}
+
+.ledger__sort--end {
+  justify-self: start;
+}
+
+.ledger__sort:hover {
+  color: var(--ink);
+}
+
+.ledger__caret {
+  width: 8px;
+  height: 8px;
+  opacity: 0;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transition:
+    transform 0.4s var(--ease-spring),
+    opacity 0.3s;
+}
+
+.ledger__caret[data-order] {
+  opacity: 0.9;
+}
+
+.ledger__caret[data-order="asc"] {
+  transform: rotate(225deg) translateY(-2px);
+}
+
+.ledger__caret[data-order=""] {
+  opacity: 0;
+}
+
+.ledger__rows {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ledger__skeleton {
+  height: 66px;
+  border-radius: var(--radius-m);
+}
+
+.ledger__row {
+  width: 100%;
+  padding: 16px 24px;
+  text-align: left;
+  transition:
+    transform 0.5s var(--ease-spring),
+    box-shadow 0.5s var(--ease-out);
+}
+
+.ledger__row:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lift);
+}
+
+.ledger__when {
+  display: grid;
+  line-height: 1.35;
+}
+
+.ledger__when small {
+  color: var(--slate);
+}
+
+.ledger__open {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--sunk);
+  transition:
+    background 0.3s,
+    color 0.3s,
+    transform 0.5s var(--ease-spring);
+}
+
+.ledger__row:hover .ledger__open {
+  background: var(--ink);
+  color: var(--on-ink);
+  transform: translateX(4px);
+}
+
+@media (max-width: 900px) {
+  .ledger__head {
+    display: none;
+  }
+
+  .ledger__row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .ledger__open {
+    display: none;
+  }
+}

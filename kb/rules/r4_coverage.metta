@@ -1,0 +1,7 @@
+(= (check-r4 $c)
+   (match &self (, (ClaimService $c $s) (ClaimFund $c $fund))
+      (if (has-fact (Service $s))
+          (if (has-fact (Tariff $s $fund $_))
+              (Result R4 pass (stv 1.0 0.9) (detail (reason covered)))
+              (Result R4 fail (stv 0.9 0.85) (detail (reason not_covered))))
+          (Result R4 fail (stv 0.8 0.6) (detail (reason unknown_service))))))

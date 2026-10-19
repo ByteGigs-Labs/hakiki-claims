@@ -1,0 +1,27 @@
+{
+  "description": "Illustrative service catalogue and tariff caps for the demo rulebook. Caps are placeholders and must be replaced with the current SHA tariff schedule before production use.",
+  "services": [
+    {"id": "svc-OPD-01", "name": "Outpatient consultation", "min_level": 2, "requires_preauth": false,
+     "tariffs": {"PHC": 500, "SHIF": 800}},
+    {"id": "svc-LAB-01", "name": "Malaria rapid test", "min_level": 2, "requires_preauth": false,
+     "tariffs": {"PHC": 400, "SHIF": 400}},
+    {"id": "svc-DEL-01", "name": "Normal delivery", "min_level": 3, "requires_preauth": false,
+     "tariffs": {"SHIF": 10200}},
+    {"id": "svc-DEN-01", "name": "Dental scaling and polishing", "min_level": 3, "requires_preauth": false,
+     "tariffs": {"SHIF": 3000}, "frequency": {"limit": 2, "window_days": 365}},
+    {"id": "svc-ER-01", "name": "Emergency stabilisation", "min_level": 3, "requires_preauth": false,
+     "tariffs": {"SHIF": 15000, "ECCIF": 20000}},
+    {"id": "svc-CS-01", "name": "Caesarean section", "min_level": 4, "requires_preauth": true,
+     "tariffs": {"SHIF": 60000}},
+    {"id": "svc-APP-01", "name": "Appendectomy", "min_level": 4, "requires_preauth": true,
+     "tariffs": {"SHIF": 45000}},
+    {"id": "svc-CAT-01", "name": "Cataract surgery", "min_level": 4, "requires_preauth": true,
+     "tariffs": {"SHIF": 35000}},
+    {"id": "svc-DIA-01", "name": "Haemodialysis session", "min_level": 4, "requires_preauth": true,
+     "tariffs": {"SHIF": 10650, "ECCIF": 10650}, "frequency": {"limit": 3, "window_days": 7}},
+    {"id": "svc-MRI-01", "name": "MRI scan", "min_level": 5, "requires_preauth": true,
+     "tariffs": {"SHIF": 18000}},
+    {"id": "svc-ONC-01", "name": "Chemotherapy cycle", "min_level": 5, "requires_preauth": true,
+     "tariffs": {"ECCIF": 80000}}
+  ]
+}

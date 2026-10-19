@@ -213,33 +213,67 @@ hakiki-claims/
 ## 9. Quick Start
 
 ```bash
-git clone https://github.com/<you>/hakiki-claims.git
+git clone https://github.com/ByteGigs-Labs/hakiki-claims.git
 cd hakiki-claims
 cp .env.example .env              # set secrets; never commit .env
 
-# Backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt     # includes hyperon — pin the tested version
-uvicorn api.main:app --reload
-
-# Check a synthetic claim
-python -m reasoner.engine --claim data/synthetic/missing_preauth.json
-
-# Dashboard
-cd dashboard && npm install && npm run dev
-
-# Or everything
+# Everything in containers (API on :8000, dashboard on :8080)
 docker compose up --build
+docker compose exec api python -m scripts.seed      # demo user + 40 synthetic claims
 ```
 
-### API example
+### Local backend development
+
+`hyperon` ships wheels for Python 3.12 and earlier, so the project is pinned to **Python 3.12** (`.python-version`).
 
 ```bash
-curl -X POST http://localhost:8000/v1/claims/check \
-  -H "Authorization: Bearer $HAKIKI_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d @data/synthetic/missing_preauth.json
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-dev.txt
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres redis
+alembic upgrade head
+uvicorn api.main:app --reload
+pytest                              # needs the dev Postgres + Redis above
+
+cd dashboard && npm install && npm run dev   # http://localhost:5173
 ```
+
+Check a synthetic claim from the command line:
+
+```bash
+python -m reasoner.engine --claim data/synthetic/missing_preauth.json
+```
+
+Install the git hooks (ruff, gitleaks) once with `pip install pre-commit && pre-commit install`. CI runs the same checks on every push, plus the full test suite against Postgres and Redis.
+
+Regenerate the synthetic dataset and its expected outcomes with `python -m scripts.build_synthetic`.
+
+### API
+
+All endpoints except `/health` need the session cookie from `POST /v1/auth/login`. Errors share one shape: `{"error": {"code", "message", "fields?"}}`.
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /v1/auth/login` · `POST /v1/auth/logout` · `GET /v1/auth/me` | Session cookie (httpOnly, SameSite=Strict) |
+| `POST /v1/claims/check` | Check one claim → verdict, trace, fixes, hashes |
+| `GET /v1/claims/{trace_hash}/explanation?lang=en\|sw` | Plain-language explanation of a stored check |
+| `GET /v1/claims?_start&_end&_sort&_order` | Claims history, `X-Total-Count` header |
+| `POST /v1/claims/batch` | Upload a CSV (multipart `file`) → 202, processed in the background |
+| `GET /v1/claims/batch/template` | CSV template |
+| `GET /v1/claims/batch` · `GET /v1/claims/batch/{id}` · `GET /v1/claims/batch/{id}/rows?verdict=` | Batch status, summary and results |
+| `GET /v1/citations/{rule}` | SHA document and section behind a rule |
+| `GET /v1/audit/verify` | Verifies the tenant's hash chain |
+
+### How a verdict is produced
+
+1. `ingest/claim_schema.py` validates the claim and swaps any raw `patient_id` for an HMAC token.
+2. `reasoner/facts.py` turns the claim and the reference data in `kb/reference/` into MeTTa atoms.
+3. Each rule in `kb/rules/` returns one `Result` with a truth value, and `kb/combine.metta` folds them into `PASS`, `AT_RISK` or `WILL_FAIL`. A risk with strength 0.8 or more means `WILL_FAIL`. Several risks combine as a noisy-or, and the confidence is the weakest one.
+4. `reasoner/fixes.py` proposes edits and re-runs the claim to prove each one.
+5. The result goes into the hash-chained audit log. `trace_hash` covers the result, and `prev_hash` links to the tenant's previous entry.
+
+Revenue at risk is the billed amount for `WILL_FAIL`, the billed amount times the risk strength for `AT_RISK`, and zero for `PASS`.
+
+> The demo rulebook uses real SHA instrument names, but tariff caps and section references are placeholders flagged `verified: false` in `kb/citations.json`. Confirm them against the current SHA schedule before relying on any verdict.
 
 ## 10. Security & Privacy (health data is sensitive personal data)
 
