@@ -228,7 +228,7 @@ docker compose exec api python -m scripts.seed      # demo user + 40 synthetic c
 
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres redis
 alembic upgrade head
 uvicorn api.main:app --reload
