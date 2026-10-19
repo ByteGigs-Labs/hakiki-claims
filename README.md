@@ -241,6 +241,8 @@ Check a synthetic claim from the command line:
 python -m reasoner.engine --claim data/synthetic/missing_preauth.json
 ```
 
+Install the git hooks (ruff, gitleaks) once with `pip install pre-commit && pre-commit install`. CI runs the same checks on every push, plus the full test suite against Postgres and Redis.
+
 Regenerate the synthetic dataset and its expected outcomes with `python -m scripts.build_synthetic`.
 
 ### API
