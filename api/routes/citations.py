@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from api.schemas import Citation
 from api.security import Principal, current_principal
 from reasoner.kb import load_kb
 
 router = APIRouter(prefix="/v1/citations", tags=["citations"])
 
 
-@router.get("/{rule_id}")
+@router.get("/{rule_id}", response_model=Citation)
 def get_citation(rule_id: str, _: Principal = Depends(current_principal)) -> dict:
     kb = load_kb()
     if rule_id not in kb.citations["rules"]:

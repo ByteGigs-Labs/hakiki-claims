@@ -1,5 +1,5 @@
 import {
-  SAMPLE_CLAIM,
+  sampleClaim,
   applyPatch,
   changedFields,
   emptyForm,
@@ -11,12 +11,13 @@ import {
   type ClaimForm,
 } from "./claimForm";
 
-const valid: ClaimForm = { ...SAMPLE_CLAIM };
 const TODAY = "2026-10-19";
+const valid: ClaimForm = sampleClaim(TODAY);
 
 describe("validate", () => {
-  it("accepts the sample claim", () => {
+  it("accepts the sample claim, dated two days before today", () => {
     expect(validate(valid, TODAY)).toEqual({});
+    expect(valid.date_of_service).toBe("2026-10-17");
   });
 
   it("flags every required field of an empty form", () => {
@@ -36,6 +37,9 @@ describe("validate", () => {
     ["preauth_ref", "no spaces"],
     ["icd_code", "o82"],
     ["claim_ref", "bad ref"],
+    ["referral_ref", "no spaces"],
+    ["discharge_date", "2026-10-10"],
+    ["discharge_date", "2026-10-20"],
     ["patient_id", "ab"],
   ] as const)("rejects %s = %s", (field, value) => {
     expect(validate({ ...valid, [field]: value }, TODAY)[field]).toBeTruthy();
@@ -48,7 +52,9 @@ describe("validate", () => {
 
 describe("toPayload", () => {
   it("sends the raw patient identifier and drops blank optionals", () => {
-    const payload = toPayload({ ...valid, claim_ref: "", preauth_ref: "  ", icd_code: "" });
+    const payload = toPayload({ ...valid, claim_ref: "", preauth_ref: "  ", icd_code: "", discharge_date: "" });
+    expect(payload.discharge_date).toBeUndefined();
+    expect(payload.emergency).toBe(false);
     expect(payload).toMatchObject({ patient_id: "DEMO-PATIENT-77", amount_kes: 45000, fund: "SHIF" });
     expect(payload.claim_ref).toBeUndefined();
     expect(payload.preauth_ref).toBeUndefined();
@@ -62,6 +68,12 @@ describe("fix patches", () => {
     expect(next.preauth_ref).toBe("PA-PENDING");
     expect(next.amount_kes).toBe("800");
     expect(changedFields(valid, next).sort()).toEqual(["amount_kes", "preauth_ref"]);
+  });
+
+  it("applies a referral placeholder and keeps booleans as booleans", () => {
+    const next = applyPatch(valid, { referral_ref: "REF-PENDING", emergency: true });
+    expect(next.referral_ref).toBe("REF-PENDING");
+    expect(next.emergency).toBe(true);
   });
 
   it("ignores keys that are not form fields", () => {

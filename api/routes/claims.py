@@ -8,6 +8,7 @@ from api.config import get_settings
 from api.db.models import AuditLog
 from api.db.session import get_db
 from api.ratelimit import check_limit
+from api.schemas import CheckResult, Narration
 from api.security import Principal
 from api.services.checks import check_and_record
 from ingest.claim_schema import ClaimInput
@@ -16,7 +17,7 @@ from narrator.service import build_completion, narrate
 router = APIRouter(prefix="/v1/claims", tags=["claims"])
 
 
-@router.post("/check")
+@router.post("/check", response_model=CheckResult, response_model_exclude_none=True)
 def check_claim(
     body: ClaimInput,
     principal: Principal = Depends(check_limit),
@@ -27,7 +28,7 @@ def check_claim(
     return result
 
 
-@router.get("/{trace_hash}/explanation")
+@router.get("/{trace_hash}/explanation", response_model=Narration)
 def explain_check(
     trace_hash: str,
     language: Literal["en", "sw"] = Query("en", alias="lang"),

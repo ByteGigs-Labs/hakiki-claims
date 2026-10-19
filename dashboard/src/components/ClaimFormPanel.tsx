@@ -59,6 +59,12 @@ export function ClaimFormPanel({ form, reference, busy, flashing, placeholders, 
 
   const service = reference?.services.find((item) => item.id === form.service_code);
   const facility = reference?.facilities.find((item) => item.id === form.facility_id);
+  const level = service?.levels[form.fund];
+  const serviceHint = !service
+    ? undefined
+    : level === undefined
+      ? `Not offered under ${form.fund}`
+      : `Level ${level}+${service.preauth_funds.includes(form.fund) ? " · needs pre-authorisation" : ""}`;
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -93,7 +99,7 @@ export function ClaimFormPanel({ form, reference, busy, flashing, placeholders, 
             ))}
           </select>
         </Field>
-        <Field name="service_code" label="Service" error={errors.service_code} hint={service ? (service.requires_preauth ? `Needs pre-authorisation · Level ${service.min_level}+` : `Level ${service.min_level}+`) : undefined}>
+        <Field name="service_code" label="Service" error={errors.service_code} hint={serviceHint}>
           <select {...input("service_code")} value={form.service_code} onChange={(e) => set("service_code", e.target.value)}>
             <option value="">Choose…</option>
             {reference?.services.map((item) => (
@@ -135,10 +141,35 @@ export function ClaimFormPanel({ form, reference, busy, flashing, placeholders, 
       </Field>
 
       <div className="claim-form__pair">
-        <Field name="preauth_ref" label="Pre-authorisation reference" error={errors.preauth_ref} note={placeholders.has("preauth_ref") ? "Placeholder. Replace it with the real reference." : undefined}>
-          <input {...input("preauth_ref")} value={form.preauth_ref} placeholder="Optional" onChange={(e) => set("preauth_ref", e.target.value)} />
+        <Field name="emergency" label="Emergency service" hint="Waives pre-auth and referral">
+          <div className="segmented" style={{ "--count": 2, "--active": form.emergency ? 1 : 0 } as React.CSSProperties}>
+            <button type="button" aria-pressed={!form.emergency} onClick={() => set("emergency", false)}>
+              No
+            </button>
+            <button type="button" aria-pressed={form.emergency} onClick={() => set("emergency", true)}>
+              Yes
+            </button>
+          </div>
         </Field>
-        <Field name="claim_ref" label="Your claim reference" error={errors.claim_ref} hint="Needed to catch duplicates">
+        <Field name="discharge_date" label="Discharge date" error={errors.discharge_date} hint="Inpatient only">
+          <input {...input("discharge_date")} type="date" min={form.date_of_service} max={todayIso()} value={form.discharge_date} onChange={(e) => set("discharge_date", e.target.value)} />
+        </Field>
+      </div>
+
+      <div className="claim-form__pair">
+        <Field name="preauth_ref" label="Pre-authorisation ref." error={errors.preauth_ref} note={placeholders.has("preauth_ref") ? "Placeholder. Replace it with the real reference." : undefined}>
+          <input {...input("preauth_ref")} value={form.preauth_ref} placeholder="If required" onChange={(e) => set("preauth_ref", e.target.value)} />
+        </Field>
+        <Field name="referral_ref" label="Referral ref." error={errors.referral_ref} note={placeholders.has("referral_ref") ? "Placeholder. Replace it with the real reference." : undefined} hint={form.fund === "SHIF" ? "SHIF is paid on referral" : undefined}>
+          <input {...input("referral_ref")} value={form.referral_ref} placeholder="If required" onChange={(e) => set("referral_ref", e.target.value)} />
+        </Field>
+      </div>
+
+      <div className="claim-form__pair">
+        <Field name="icd_code" label="Diagnosis (ICD-10)" error={errors.icd_code} hint="Form 3 needs clinical details">
+          <input {...input("icd_code")} value={form.icd_code} placeholder="O82" onChange={(e) => set("icd_code", e.target.value.toUpperCase())} />
+        </Field>
+        <Field name="claim_ref" label="Your claim reference" error={errors.claim_ref} hint="Catches duplicates">
           <input {...input("claim_ref")} value={form.claim_ref} placeholder="Optional" onChange={(e) => set("claim_ref", e.target.value)} />
         </Field>
       </div>

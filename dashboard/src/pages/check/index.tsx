@@ -10,11 +10,11 @@ import { VerdictBanner } from "../../components/VerdictBanner";
 import { useAsync } from "../../hooks/useAsync";
 import { checkClaim, errorMessage, fetchReference } from "../../lib/api";
 import {
-  SAMPLE_CLAIM,
   applyPatch,
   changedFields,
   emptyForm,
   mergePatches,
+  sampleClaim,
   sameClaim,
   toPayload,
   type ClaimForm,
@@ -67,7 +67,7 @@ export function CheckClaimPage() {
       (current) =>
         new Set([
           ...current,
-          ...fixes.filter((fix) => fix.requires_input).flatMap((fix) => Object.keys(fix.patch) as (keyof ClaimForm)[]).filter((key) => key === "preauth_ref"),
+          ...fixes.filter((fix) => fix.requires_input).flatMap((fix) => Object.keys(fix.patch) as (keyof ClaimForm)[]).filter((key) => key === "preauth_ref" || key === "referral_ref"),
         ]),
     );
     setForm(next);
@@ -93,7 +93,7 @@ export function CheckClaimPage() {
             onChange={edit}
             onSubmit={() => run(form)}
             onSample={() => {
-              setForm(SAMPLE_CLAIM);
+              setForm(sampleClaim());
               setPlaceholders(new Set());
             }}
           />

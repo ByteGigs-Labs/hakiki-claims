@@ -1020,3 +1020,35 @@
   border-radius: 50%;
   background: var(--ink);
 }
+
+.trace__result {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.trace__basis {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: repeating-linear-gradient(135deg, var(--sunk) 0 5px, var(--veil-strong) 5px 6px);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--graphite);
+}
+
+.citation__quote {
+  margin: 0;
+  padding: 18px 22px;
+  border-radius: var(--radius-s);
+  background: var(--lift);
+  box-shadow: var(--shadow-soft);
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 1.55;
+  font-style: italic;
+  color: var(--graphite);
+}
+
+.citation__note--ok {
+  background: var(--sunk);
+}

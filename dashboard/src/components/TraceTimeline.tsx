@@ -44,7 +44,10 @@ export function TraceTimeline({ steps, onCite }: Props) {
                 <b>{ruleId(step.rule)}</b>
                 {names.get(ruleId(step.rule)) ?? ruleName(step.rule)}
               </span>
-              <span className="trace__result">{RESULT_LABEL[step.result]}</span>
+              <span className="trace__result">
+                {step.values.basis === "illustrative" && <span className="trace__basis">Placeholder cap</span>}
+                {RESULT_LABEL[step.result]}
+              </span>
             </div>
             <p className="trace__fact">{step.fact}</p>
             <div className="trace__foot">

@@ -13,6 +13,9 @@ BODY = {
     "date_of_service": "2026-10-14",
     "amount_kes": 45000,
     "member_status": "active",
+    "icd_code": "O82",
+    "referral_ref": "REF-1001",
+    "lodging_date": "2026-10-15",
 }
 
 
@@ -73,18 +76,30 @@ def test_duplicate_detection_uses_the_tenants_own_history(client, make_user, mak
     session = login(make_user("a@a.test", make_tenant("A")))
     session.post(
         "/v1/claims/check",
-        json={**BODY, "claim_ref": "clm-1", "service_code": "svc-OPD-01", "amount_kes": 700},
+        json={
+            **BODY,
+            "claim_ref": "clm-1",
+            "service_code": "svc-OPD-01",
+            "amount_kes": 700,
+            "icd_code": "J06.9",
+        },
     )
     duplicate = session.post(
         "/v1/claims/check",
-        json={**BODY, "claim_ref": "clm-2", "service_code": "svc-OPD-01", "amount_kes": 700},
+        json={
+            **BODY,
+            "claim_ref": "clm-2",
+            "service_code": "svc-OPD-01",
+            "amount_kes": 700,
+            "icd_code": "J06.9",
+        },
     ).json()
     assert duplicate["verdict"] == "WILL_FAIL"
     assert any(s["rule"].startswith("R8") and s["result"] == "fail" for s in duplicate["trace"])
 
 
 def test_other_tenants_history_is_never_used_for_duplicates(client, make_user, make_tenant, login):
-    body = {**BODY, "service_code": "svc-OPD-01", "amount_kes": 700}
+    body = {**BODY, "service_code": "svc-OPD-01", "amount_kes": 700, "icd_code": "J06.9"}
     login(make_user("a@a.test", make_tenant("A"))).post(
         "/v1/claims/check", json={**body, "claim_ref": "clm-1"}
     )
@@ -101,7 +116,9 @@ def test_citation_endpoint_returns_the_source_for_a_rule(client, make_user, logi
     session = login(make_user())
     citation = session.get("/v1/citations/R3").json()
     assert citation["rule"] == "R3" and citation["document"].startswith("Social Health Insurance")
-    assert citation["verified"] is False
+    assert citation["verified"] is True
+    assert citation["section"] == "Regulation 60(1) and 60(3)"
+    assert "shall not apply for emergency services" in citation["quote"]
     assert session.get("/v1/citations/R99").status_code == 404
     client.cookies.clear()
     assert client.get("/v1/citations/R3").status_code == 401
@@ -114,8 +131,9 @@ def test_reference_data_lists_facilities_services_and_rules(client, make_user, l
     mercy = next(f for f in data["facilities"] if f["id"] == "fac-12")
     assert (mercy["level"], mercy["funds"]) == (4, ["ECCIF", "PHC", "SHIF"])
     cs = next(s for s in data["services"] if s["id"] == "svc-CS-01")
-    assert cs["requires_preauth"] is True and cs["funds"] == ["SHIF"]
-    assert [rule["id"] for rule in data["rules"]] == ["R1", "R2", "R3", "R4", "R5", "R6", "R8"]
+    assert cs["preauth_funds"] == ["SHIF"] and cs["funds"] == ["PHC", "SHIF"]
+    assert cs["levels"] == {"PHC": 2, "SHIF": 4}
+    assert [rule["id"] for rule in data["rules"]] == [f"R{n}" for n in range(1, 12)]
     client.cookies.clear()
     assert client.get("/v1/reference").status_code == 401
 
