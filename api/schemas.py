@@ -62,3 +62,30 @@ class Citation(BaseModel):
     verified: bool
     quote: str
     note: str
+
+
+class RuleCount(BaseModel):
+    rule: str
+    name: str
+    count: int
+
+
+class DayActivity(BaseModel):
+    date: str
+    checks: int
+    flagged: int
+
+
+class Overview(BaseModel):
+    days: int
+    since: str
+    checks: int
+    claims: int
+    passing: int
+    at_risk: int
+    will_fail: int
+    revenue_at_risk_kes: float
+    revenue_protected_kes: float
+    claims_protected: int
+    top_failing_rules: list[RuleCount]
+    daily: list[DayActivity]

@@ -533,6 +533,29 @@
         "title": "ClaimRow",
         "type": "object"
       },
+      "DayActivity": {
+        "properties": {
+          "checks": {
+            "title": "Checks",
+            "type": "integer"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "flagged": {
+            "title": "Flagged",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "checks",
+          "flagged"
+        ],
+        "title": "DayActivity",
+        "type": "object"
+      },
       "Fix": {
         "properties": {
           "action": {
@@ -693,6 +716,103 @@
           "verdict"
         ],
         "title": "Narration",
+        "type": "object"
+      },
+      "Overview": {
+        "properties": {
+          "at_risk": {
+            "title": "At Risk",
+            "type": "integer"
+          },
+          "checks": {
+            "title": "Checks",
+            "type": "integer"
+          },
+          "claims": {
+            "title": "Claims",
+            "type": "integer"
+          },
+          "claims_protected": {
+            "title": "Claims Protected",
+            "type": "integer"
+          },
+          "daily": {
+            "items": {
+              "$ref": "#/components/schemas/DayActivity"
+            },
+            "title": "Daily",
+            "type": "array"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "passing": {
+            "title": "Passing",
+            "type": "integer"
+          },
+          "revenue_at_risk_kes": {
+            "title": "Revenue At Risk Kes",
+            "type": "number"
+          },
+          "revenue_protected_kes": {
+            "title": "Revenue Protected Kes",
+            "type": "number"
+          },
+          "since": {
+            "title": "Since",
+            "type": "string"
+          },
+          "top_failing_rules": {
+            "items": {
+              "$ref": "#/components/schemas/RuleCount"
+            },
+            "title": "Top Failing Rules",
+            "type": "array"
+          },
+          "will_fail": {
+            "title": "Will Fail",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "days",
+          "since",
+          "checks",
+          "claims",
+          "passing",
+          "at_risk",
+          "will_fail",
+          "revenue_at_risk_kes",
+          "revenue_protected_kes",
+          "claims_protected",
+          "top_failing_rules",
+          "daily"
+        ],
+        "title": "Overview",
+        "type": "object"
+      },
+      "RuleCount": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "rule": {
+            "title": "Rule",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule",
+          "name",
+          "count"
+        ],
+        "title": "RuleCount",
         "type": "object"
       },
       "TraceStep": {
@@ -1491,6 +1611,51 @@
         "summary": "Reference Data",
         "tags": [
           "reference"
+        ]
+      }
+    },
+    "/v1/reports/overview": {
+      "get": {
+        "operationId": "get_overview_v1_reports_overview_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 365,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Overview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Overview",
+        "tags": [
+          "reports"
         ]
       }
     }

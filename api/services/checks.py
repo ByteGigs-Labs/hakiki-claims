@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -18,13 +19,16 @@ def record_check(
     result: dict,
     batch_id: UUID | None = None,
     row_number: int | None = None,
+    checked_at: datetime | None = None,
 ) -> dict:
     payload = {key: value for key, value in result.items() if key not in HASH_FIELDS}
     entry = audit.append(
         db, principal.tenant_id, payload["claim"], payload["rulebook_version"], payload
     )
+    when = {"checked_at": checked_at} if checked_at else {}
     db.add(
         ClaimChecked(
+            **when,
             tenant_id=principal.tenant_id,
             user_id=principal.user_id,
             batch_id=batch_id,
@@ -89,6 +93,7 @@ def check_and_record(
     claim: dict,
     batch_id: UUID | None = None,
     row_number: int | None = None,
+    checked_at: datetime | None = None,
 ) -> dict:
     result = engine.check(claim, prior_claims(db, principal, claim))
-    return record_check(db, principal, claim, result, batch_id, row_number)
+    return record_check(db, principal, claim, result, batch_id, row_number, checked_at)

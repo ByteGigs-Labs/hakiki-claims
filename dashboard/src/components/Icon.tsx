@@ -17,6 +17,7 @@ const PATHS = {
   globe: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm-9 9h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18",
   plus: "M12 5v14M5 12h14",
   filter: "M4 6h16M7 12h10M10 18h4",
+  chart: "M4 20V10m6 10V4m6 16v-7m4 7H3",
   retry: "M4 12a8 8 0 0 1 14-5.3M20 4v4h-4M20 12a8 8 0 0 1-14 5.3M4 20v-4h4",
 } as const;
 
