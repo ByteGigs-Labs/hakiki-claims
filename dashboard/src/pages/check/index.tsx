@@ -4,6 +4,7 @@ import { CitationDrawer } from "../../components/CitationDrawer";
 import { ClaimFormPanel } from "../../components/ClaimFormPanel";
 import { FixList } from "../../components/FixList";
 import { GlassCube } from "../../components/GlassCube";
+import { Icon } from "../../components/Icon";
 import { NarrationPanel } from "../../components/NarrationPanel";
 import { TraceTimeline } from "../../components/TraceTimeline";
 import { VerdictBanner } from "../../components/VerdictBanner";
@@ -23,6 +24,10 @@ import type { CheckResult, Fix, Language } from "../../types";
 import "./check.css";
 
 const FLASH_MS = 1700;
+const PLACEHOLDER_LABEL: Record<string, string> = {
+  preauth_ref: "the pre-authorisation reference",
+  referral_ref: "the referral reference",
+};
 
 export function CheckClaimPage() {
   const reference = useAsync(fetchReference, []);
@@ -115,6 +120,12 @@ export function CheckClaimPage() {
           {result && (
             <>
               <VerdictBanner result={result} />
+              {placeholders.size > 0 && (
+                <p className="check__placeholder surface" role="status">
+                  <Icon name="alert" size={18} />
+                  This result uses a placeholder for {[...placeholders].map((key) => PLACEHOLDER_LABEL[key as string] ?? key).join(" and ")}. Replace it with the real reference before you submit the claim.
+                </p>
+              )}
               <div key={result.trace_hash + result.prev_hash} className="check__sections">
                 {result.fixes.length > 0 && (
                   <div className="reveal" style={{ "--i": 0 } as React.CSSProperties}>

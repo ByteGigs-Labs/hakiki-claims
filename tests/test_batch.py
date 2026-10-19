@@ -195,3 +195,31 @@ def test_batch_results_keep_the_audit_chain_valid(session, db):
 def test_history_page_includes_batch_claims(session):
     upload(session, HEADER + row())
     assert session.get("/v1/claims").headers["x-total-count"] == "1"
+
+
+def test_batches_orphaned_by_a_restart_are_marked_failed(session, db):
+    from datetime import UTC, datetime, timedelta
+
+    from api.services.batches import fail_stale_batches
+
+    batch_id = upload(session, HEADER + row()).json()["id"]
+    stuck = db.get(Batch, batch_id)
+    stuck.status = "processing"
+    stuck.created_at = datetime.now(UTC) - timedelta(minutes=10)
+    db.commit()
+    fresh = Batch(
+        tenant_id=stuck.tenant_id,
+        user_id=stuck.user_id,
+        filename="new.csv",
+        status="queued",
+        total=1,
+        processed=0,
+        claims=[],
+        errors=[],
+    )
+    db.add(fresh)
+    db.commit()
+    assert fail_stale_batches(db) == 1
+    db.refresh(stuck)
+    db.refresh(fresh)
+    assert (stuck.status, fresh.status) == ("failed", "queued")

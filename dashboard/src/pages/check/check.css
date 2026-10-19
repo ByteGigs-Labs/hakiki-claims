@@ -100,3 +100,13 @@
   display: grid;
   gap: 20px;
 }
+
+.check__placeholder {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 22px;
+  font-weight: 600;
+  background: repeating-linear-gradient(135deg, var(--lift) 0 9px, var(--sunk) 9px 10px);
+  animation: rise 0.6s var(--ease-out);
+}
