@@ -375,6 +375,10 @@ Measured with `python -m scripts.benchmark 100 500 --workers 1 4` on a 4-core la
 
 Each worker pays about a second to start, so the gain is largest on big files.
 
+### Accessibility
+
+Every page was audited with axe-core in headless Chrome against WCAG 2.2 AA (login, check, batch, history, overview, team, API keys, password, an open trace and the history drawer), in light and dark themes at 1440 px and 390 px. The audit found low-contrast grey text, a table header without a table, and unlabelled navigation links on phones. All are fixed and it now reports no violations. Tests keep it that way: axe runs on the new pages and an open trace step, and a contrast test checks that every text colour reaches 4.5:1 on every surface in both themes. Automated checks catch only part of the problems, so a screen-reader pass with a real user is still on the list.
+
 ### API contract
 
 `docs/openapi.json` is the frozen contract, and `dashboard/src/types.ts` mirrors it. A test fails when either drifts from the other. To change the contract, run `python -m scripts.export_openapi`, update `types.ts`, and get the pull request approved by both owners.
