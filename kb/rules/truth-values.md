@@ -36,8 +36,29 @@ Every rule returns `(stv strength confidence)`. **Strength** says how strongly t
 
 For a failing or at-risk verdict the strength is the noisy-or of the risk strengths, `1 - ∏(1 - sᵢ)`, and the confidence is the lowest confidence among the risks. For `PASS` both values are the weakest among the passing rules, so a pass is only as strong as its weakest check.
 
-## Calibration plan
+## Calibration
 
-1. Record the accept/reject outcome of every design-partner claim next to its verdict.
-2. Per rule, compare predicted strength with the observed rejection rate and adjust the stv.
-3. Re-run the golden tests after each change, since trace hashes change when truth values do. Bump `kb/VERSION` with every change.
+`reasoner/calibrate.py` compares what the rules predicted with what a payer really did. It is a command-line tool, needs no database, and never edits `kb/`.
+
+```bash
+python -m reasoner.calibrate --claims claims.csv --outcomes outcomes.csv --report report.json
+```
+
+`claims.csv` uses the batch columns. `outcomes.csv` has `claim_ref` and `outcome` (`accepted` or `rejected`). Rows are replayed in file order, so earlier rows count as history for the duplicate rule. `data/synthetic/outcomes.csv` is an invented example made by `python -m scripts.build_outcomes` with a fixed seed; it shows the format and proves nothing about real payers.
+
+Per rule the table shows:
+
+- **fired**: how often the rule returned `fail` or `warn`.
+- **rejected**: how many of those claims were then rejected. `rejected / fired` is the precision.
+- **missed**: rejections where this rule stayed quiet. A large number is normal, since other rules usually explain those claims.
+- **current**: the average strength the rule used when it fired.
+- **suggest**: `(rejected + 5 × current) / (fired + 5)`. The expert value counts as five observations, so a handful of claims cannot swing it far.
+- **conf**: `fired / (fired + 5)`, capped at 0.95. It grows with the number of claims seen and never claims certainty.
+
+Treat a suggestion as a prompt to look, not an instruction. Wait for 30 or more firings per rule before changing a number, read the rejected claims, and then follow the steps below.
+
+## Changing a truth value
+
+1. Edit the stv in the rule file and in the table above.
+2. Re-run the golden tests, since trace hashes change when truth values do.
+3. Bump `kb/VERSION`.
