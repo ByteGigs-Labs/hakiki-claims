@@ -25,7 +25,7 @@ def _bindings(claim: dict, detail: dict) -> dict:
 
 def _matches(metta: MeTTa, pattern: str) -> list[str]:
     (found,) = metta.run(f"!(match &self {pattern} {pattern})")
-    return [str(atom) for atom in found]
+    return sorted(str(atom) for atom in found)
 
 
 def premises_for(

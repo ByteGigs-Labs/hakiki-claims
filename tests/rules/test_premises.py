@@ -72,3 +72,12 @@ def test_fix_search_does_not_pay_for_premises(monkeypatch):
 @pytest.mark.parametrize("rule_id", [f"R{n}" for n in range(1, 12)])
 def test_the_rule_source_is_available(rule_id):
     assert f"(check-{rule_id.lower()} " in load_kb().rule_source(rule_id)
+
+
+def test_premises_come_out_in_the_same_order_every_time():
+    history = [prior(f"clm-00{n}", "2026-10-14") for n in range(1, 6)]
+    runs = {
+        tuple(tuple(step["premises"]) for step in engine.check(make_claim(), history)["trace"])
+        for _ in range(3)
+    }
+    assert len(runs) == 1
