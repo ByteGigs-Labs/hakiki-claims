@@ -40,14 +40,13 @@ export function ClaimList() {
       </header>
 
       <section className="ledger reveal" style={{ "--i": 1 } as React.CSSProperties}>
-        <div className="ledger__head" role="row">
+        <div className="ledger__head">
           {COLUMNS.map((column) => (
             <button
               key={column.field}
               type="button"
-              role="columnheader"
               className={`ledger__sort${column.numeric ? " ledger__sort--end" : ""}`}
-              aria-sort={sorter?.field === column.field ? (sorter.order === "asc" ? "ascending" : "descending") : "none"}
+              aria-label={`Sort by ${column.label}${sorter?.field === column.field ? `, ${sorter.order === "asc" ? "ascending" : "descending"}` : ""}`}
               onClick={() => sortBy(column.field)}
             >
               {column.label}

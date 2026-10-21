@@ -35,7 +35,7 @@ export function Shell() {
         <nav className="rail__nav" style={{ "--active": active, "--count": items.length } as React.CSSProperties}>
           <span className="rail__pill" aria-hidden="true" />
           {items.map((item) => (
-            <NavLink key={item.to} to={item.to} className="rail__link">
+            <NavLink key={item.to} to={item.to} className="rail__link" aria-label={item.label}>
               <Icon name={item.icon} size={20} />
               <span>{item.label}</span>
             </NavLink>
