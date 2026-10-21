@@ -11,6 +11,9 @@ const NAV: { to: string; label: string; icon: IconName; roles?: Identity["role"]
   { to: "/check", label: "Check claim", icon: "shield" },
   { to: "/batch", label: "Batch check", icon: "upload" },
   { to: "/claims", label: "Claims history", icon: "history" },
+  { to: "/team", label: "Team", icon: "users", roles: ["admin"] },
+  { to: "/keys", label: "API keys", icon: "key", roles: ["admin"] },
+  { to: "/account", label: "Password", icon: "shield" },
 ];
 
 export function Shell() {
@@ -32,7 +35,7 @@ export function Shell() {
         <nav className="rail__nav" style={{ "--active": active, "--count": items.length } as React.CSSProperties}>
           <span className="rail__pill" aria-hidden="true" />
           {items.map((item) => (
-            <NavLink key={item.to} to={item.to} className="rail__link">
+            <NavLink key={item.to} to={item.to} className="rail__link" aria-label={item.label}>
               <Icon name={item.icon} size={20} />
               <span>{item.label}</span>
             </NavLink>

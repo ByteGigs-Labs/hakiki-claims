@@ -33,9 +33,9 @@ function Logic({ step }: { step: TraceStep }) {
   return (
     <div className="trace__logic">
       <p className="eyebrow">Facts the rule matched</p>
-      <pre className="trace__atoms">{(step.premises ?? []).join("\n") || "Recorded before premises were kept."}</pre>
+      <pre className="trace__atoms" tabIndex={0} aria-label="Matched facts">{(step.premises ?? []).join("\n") || "Recorded before premises were kept."}</pre>
       <p className="eyebrow">The rule itself, in MeTTa</p>
-      {data ? <pre className="trace__atoms">{data.metta_source}</pre> : <div className="skeleton" style={{ height: 96 }} />}
+      {data ? <pre className="trace__atoms" tabIndex={0} aria-label="Rule source in MeTTa">{data.metta_source}</pre> : <div className="skeleton" style={{ height: 96 }} />}
     </div>
   );
 }

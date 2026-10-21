@@ -1,5 +1,7 @@
 # Hakiki 🩺 — Glass Box SHA Claims Pre-Auditor
 
+[![CI](https://github.com/ByteGigs-Labs/hakiki-claims/actions/workflows/ci.yml/badge.svg)](https://github.com/ByteGigs-Labs/hakiki-claims/actions/workflows/ci.yml)
+
 > **Hakiki** (Swahili: *verify, validate*) checks every Social Health Authority (SHA) claim **before** a facility submits it, and explains, step by step, exactly which rule it would fail and how to fix it. The reasoning runs on **MeTTa / OpenCog Hyperon**, so every decision is a transparent, reproducible logic trace instead of a black box.
 
 ---
@@ -323,7 +325,7 @@ Check a synthetic claim from the command line:
 python -m reasoner.engine --claim data/synthetic/missing_preauth.json
 ```
 
-Install the git hooks (ruff, gitleaks) once with `pip install pre-commit && pre-commit install`. CI runs the same checks on every push, plus the full test suite against Postgres and Redis.
+Backend coverage is 96% (CI fails below 90%), and CI audits Python and npm dependencies for known high-severity vulnerabilities on every push. Install the git hooks (ruff, gitleaks) once with `pip install pre-commit && pre-commit install`. CI runs the same checks on every push, plus the full test suite against Postgres and Redis.
 
 Regenerate the synthetic dataset and its expected outcomes with `python -m scripts.build_synthetic`. To change a rule, follow `kb/UPDATING.md`; `python -m reasoner.impact --base origin/main` lists every verdict the change moves, and CI fails a rule change that does not bump `kb/VERSION`.
 
@@ -372,6 +374,10 @@ Measured with `python -m scripts.benchmark 100 500 --workers 1 4` on a 4-core la
 | 500 | 221 s | 116 s |
 
 Each worker pays about a second to start, so the gain is largest on big files.
+
+### Accessibility
+
+Every page was audited with axe-core in headless Chrome against WCAG 2.2 AA (login, check, batch, history, overview, team, API keys, password, an open trace and the history drawer), in light and dark themes at 1440 px and 390 px. The audit found low-contrast grey text, a table header without a table, and unlabelled navigation links on phones. All are fixed and it now reports no violations. Tests keep it that way: axe runs on the new pages and an open trace step, and a contrast test checks that every text colour reaches 4.5:1 on every surface in both themes. Automated checks catch only part of the problems, so a screen-reader pass with a real user is still on the list.
 
 ### API contract
 

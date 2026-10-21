@@ -2,13 +2,18 @@ import type {
   AuditStatus,
   Batch,
   BatchRow,
+  ApiKeySummary,
   Citation,
+  CreatedApiKey,
   CheckResult,
   ClaimInput,
   Language,
+  ManagedUser,
   Narration,
+  NewUser,
   Overview,
   ReferenceData,
+  Role,
   Verdict,
 } from "../types";
 import { http } from "./http";
@@ -85,3 +90,23 @@ export const errorMessage = (error: unknown, fallback: string) => {
 
 export const fetchOverview = async (days: number) =>
   (await http.get<Overview>("/v1/reports/overview", { params: { days } })).data;
+
+export const fetchUsers = async () => (await http.get<ManagedUser[]>("/v1/users")).data;
+
+export const createUser = async (user: NewUser) => (await http.post<ManagedUser>("/v1/users", user)).data;
+
+export const updateUser = async (id: string, change: { role?: Role; is_active?: boolean }) =>
+  (await http.patch<ManagedUser>(`/v1/users/${id}`, change)).data;
+
+export const fetchApiKeys = async () => (await http.get<ApiKeySummary[]>("/v1/api-keys")).data;
+
+export const createApiKey = async (name: string) =>
+  (await http.post<CreatedApiKey>("/v1/api-keys", { name })).data;
+
+export const revokeApiKey = async (id: string) => {
+  await http.delete(`/v1/api-keys/${id}`);
+};
+
+export const changePassword = async (currentPassword: string, newPassword: string) => {
+  await http.post("/v1/auth/password", { current_password: currentPassword, new_password: newPassword });
+};
