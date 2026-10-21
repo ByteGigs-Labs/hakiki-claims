@@ -1,3 +1,4 @@
+from collections.abc import Collection
 from datetime import datetime
 from uuid import UUID
 
@@ -60,7 +61,18 @@ def record_check(
     return {**payload, "trace_hash": entry.trace_hash, "prev_hash": entry.prev_hash}
 
 
-def prior_claims(db: Session, principal: Principal, claim: dict) -> list[dict]:
+def prior_summary(claim: dict) -> dict:
+    return {
+        "claim_ref": claim["claim_ref"],
+        "patient_token": claim["patient_token"],
+        "service_code": claim["service_code"],
+        "date_of_service": claim["date_of_service"],
+    }
+
+
+def patient_history(
+    db: Session, principal: Principal, tokens: Collection[str]
+) -> dict[str, dict[str, dict]]:
     latest = (
         select(
             ClaimChecked.claim_ref,
@@ -70,21 +82,24 @@ def prior_claims(db: Session, principal: Principal, claim: dict) -> list[dict]:
         )
         .where(
             ClaimChecked.tenant_id == principal.tenant_id,
-            ClaimChecked.patient_token == claim["patient_token"],
-            ClaimChecked.claim_ref != claim["claim_ref"],
+            ClaimChecked.patient_token.in_(tokens),
         )
-        .ext(distinct_on(ClaimChecked.claim_ref))
-        .order_by(ClaimChecked.claim_ref, ClaimChecked.checked_at.desc())
+        .ext(distinct_on(ClaimChecked.patient_token, ClaimChecked.claim_ref))
+        .order_by(
+            ClaimChecked.patient_token, ClaimChecked.claim_ref, ClaimChecked.checked_at.desc()
+        )
     )
-    return [
-        {
-            "claim_ref": row.claim_ref,
-            "patient_token": row.patient_token,
-            "service_code": row.service_code,
-            "date_of_service": row.date_of_service.isoformat(),
-        }
-        for row in db.execute(latest)
-    ]
+    history: dict[str, dict[str, dict]] = {token: {} for token in tokens}
+    for row in db.execute(latest):
+        history[row.patient_token][row.claim_ref] = prior_summary(
+            {**row._asdict(), "date_of_service": row.date_of_service.isoformat()}
+        )
+    return history
+
+
+def prior_claims(db: Session, principal: Principal, claim: dict) -> list[dict]:
+    history = patient_history(db, principal, [claim["patient_token"]])[claim["patient_token"]]
+    return [prior for ref, prior in history.items() if ref != claim["claim_ref"]]
 
 
 def check_and_record(

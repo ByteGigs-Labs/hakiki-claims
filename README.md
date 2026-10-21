@@ -177,7 +177,7 @@ Each rule cites the SHA document and regulation it relies on, with a short quote
   "fixes": [
     { "action": "Attach pre-authorisation reference", "flips_to": "PASS" }
   ],
-  "rulebook_version": "sha-rules-2026.10.0",
+  "rulebook_version": "sha-rules-2026.10.1",
   "trace_hash": "sha256:…",
   "prev_hash": "sha256:…"
 }
@@ -255,7 +255,7 @@ hakiki-claims/
 │   ├── reference/           # tariffs, packages, facility levels (data atoms)
 │   ├── citations.json       # rule → SHA document + section
 │   ├── combine.metta        # combines rule outcomes into a verdict
-│   └── VERSION              # rulebook version, e.g. sha-rules-2026.10.0
+│   └── VERSION              # rulebook version, e.g. sha-rules-2026.10.1
 ├── reasoner/
 │   ├── engine.py            # loads rulebook, runs checks via hyperon
 │   ├── trace.py             # fired rules → trace tree
@@ -281,6 +281,16 @@ hakiki-claims/
 ```
 
 ## 9. Quick Start
+
+Try it in two minutes. You need Docker and nothing else:
+
+```bash
+git clone https://github.com/ByteGigs-Labs/hakiki-claims.git
+cd hakiki-claims
+./scripts/demo.sh        # creates .env with fresh secrets, starts the stack, seeds it, prints the login
+```
+
+Or do the steps by hand:
 
 ```bash
 git clone https://github.com/ByteGigs-Labs/hakiki-claims.git
@@ -315,11 +325,11 @@ python -m reasoner.engine --claim data/synthetic/missing_preauth.json
 
 Install the git hooks (ruff, gitleaks) once with `pip install pre-commit && pre-commit install`. CI runs the same checks on every push, plus the full test suite against Postgres and Redis.
 
-Regenerate the synthetic dataset and its expected outcomes with `python -m scripts.build_synthetic`.
+Regenerate the synthetic dataset and its expected outcomes with `python -m scripts.build_synthetic`. To change a rule, follow `kb/UPDATING.md`; `python -m reasoner.impact --base origin/main` lists every verdict the change moves, and CI fails a rule change that does not bump `kb/VERSION`.
 
 ### API
 
-All endpoints except `/health` need the session cookie from `POST /v1/auth/login`. Errors share one shape: `{"error": {"code", "message", "fields?"}}`.
+All endpoints except `/health` need the session cookie from `POST /v1/auth/login`. Programs can use an API key instead on the check, explanation and batch endpoints (see below). Errors share one shape: `{"error": {"code", "message", "fields?"}}`.
 
 | Endpoint | Purpose |
 |---|---|
@@ -333,6 +343,35 @@ All endpoints except `/health` need the session cookie from `POST /v1/auth/login
 | `GET /v1/citations/{rule}` | SHA document and section behind a rule |
 | `GET /v1/reports/overview?days=` | Revenue protected and at risk, daily activity and top failure causes (finance managers and admins) |
 | `GET /v1/audit/verify` | Verifies the tenant's hash chain |
+
+| `GET /v1/users` · `POST /v1/users` · `PATCH /v1/users/{id}` | Admins manage their facility's team (add, change role, deactivate) |
+| `POST /v1/auth/password` | Change your own password; other sessions end |
+| `POST /v1/api-keys` · `GET /v1/api-keys` · `DELETE /v1/api-keys/{id}` | Admins create, list and revoke API keys (session only) |
+
+### API keys
+
+An admin creates a key with `POST /v1/api-keys {"name": "Billing system"}`. The full key (`hk_<prefix>_<secret>`) appears once in that response, and only its SHA-256 hash is stored. A key acts as a clerk of the admin's facility, can be revoked at any time, and has its own rate limit.
+
+```bash
+curl -X POST http://localhost:8000/v1/claims/check \
+  -H "Authorization: Bearer hk_..." -H "Content-Type: application/json" \
+  -d '{"claim_ref": "clm-1", "patient_id": "A1234567", "facility_id": "fac-12", "service_code": "svc-CS-01", "fund": "SHIF", "date_of_service": "2026-10-14", "amount_kes": 45000}'
+```
+
+A key works on `POST /v1/claims/check`, `GET /v1/claims/{trace_hash}/explanation`, `POST /v1/claims/batch` and the batch status and rows endpoints. Every other endpoint, including history and key management, needs a browser session.
+
+### Performance
+
+A claim takes 0.4 s on average through the reasoning engine, because every check also re-runs the claim to prove each suggested fix. Batches run the engine in parallel worker processes (`BATCH_WORKERS`, default up to 4) and write results back in file order, so the audit chain and the within-file duplicate checks give exactly the same answers as sequential processing (a test compares the trace hashes).
+
+Measured with `python -m scripts.benchmark 100 500 --workers 1 4` on a 4-core laptop, engine only, synthetic claims:
+
+| Claims | 1 worker | 4 workers |
+|---|---|---|
+| 100 | 41 s | 26 s |
+| 500 | 221 s | 116 s |
+
+Each worker pays about a second to start, so the gain is largest on big files.
 
 ### API contract
 
@@ -401,4 +440,4 @@ Revenue at risk is the billed amount for `WILL_FAIL`, the billed amount times th
 
 ## 15. License
 
-MIT for code. The rulebook files in `kb/` are CC BY 4.0, with attribution to the source SHA documents.
+MIT for code. The rulebook files in `kb/` are CC BY 4.0 (see `kb/LICENSE`), with attribution to the source SHA documents. See `CONTRIBUTING.md` before opening a pull request.

@@ -127,7 +127,7 @@ def test_citation_endpoint_returns_the_source_for_a_rule(client, make_user, logi
 def test_reference_data_lists_facilities_services_and_rules(client, make_user, login):
     session = login(make_user())
     data = session.get("/v1/reference").json()
-    assert data["rulebook_version"] == "sha-rules-2026.10.0"
+    assert data["rulebook_version"] == "sha-rules-2026.10.1"
     mercy = next(f for f in data["facilities"] if f["id"] == "fac-12")
     assert (mercy["level"], mercy["funds"]) == (4, ["ECCIF", "PHC", "SHIF"])
     cs = next(s for s in data["services"] if s["id"] == "svc-CS-01")

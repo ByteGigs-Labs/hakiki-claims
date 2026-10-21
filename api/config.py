@@ -17,10 +17,12 @@ class Settings(BaseSettings):
     max_body_bytes: int = 64 * 1024
     max_upload_bytes: int = 2 * 1024 * 1024
     max_batch_rows: int = 500
+    batch_workers: int = 0
     login_ip_per_minute: int = 20
     login_account_per_five_minutes: int = 5
     check_per_minute: int = 60
     batch_per_hour: int = 10
+    password_changes_per_hour: int = 5
     demo_tenant_name: str = "Demo Mission Hospital"
     demo_user_name: str = "Demo Clerk"
     demo_user_email: str = "clerk@demo.hakiki.test"

@@ -5,7 +5,7 @@ import redis
 from fastapi import Depends, HTTPException, Request, status
 
 from api.config import get_settings
-from api.security import Principal, current_principal
+from api.security import Principal, current_principal, current_principal_or_key
 
 
 @lru_cache
@@ -76,11 +76,20 @@ def clear_login_failures(email: str) -> None:
     _guarded(lambda client: client.delete(_account_key(email)))
 
 
-def check_limit(principal: Principal = Depends(current_principal)) -> Principal:
-    hit(f"rl:check:user:{principal.user_id}", get_settings().check_per_minute, 60)
+def _subject(principal: Principal) -> str:
+    return f"key:{principal.api_key_id}" if principal.api_key_id else f"user:{principal.user_id}"
+
+
+def check_limit(principal: Principal = Depends(current_principal_or_key)) -> Principal:
+    hit(f"rl:check:{_subject(principal)}", get_settings().check_per_minute, 60)
     return principal
 
 
-def batch_limit(principal: Principal = Depends(current_principal)) -> Principal:
-    hit(f"rl:batch:user:{principal.user_id}", get_settings().batch_per_hour, 3600)
+def batch_limit(principal: Principal = Depends(current_principal_or_key)) -> Principal:
+    hit(f"rl:batch:{_subject(principal)}", get_settings().batch_per_hour, 3600)
+    return principal
+
+
+def password_limit(principal: Principal = Depends(current_principal)) -> Principal:
+    hit(f"rl:password:{principal.user_id}", get_settings().password_changes_per_hour, 3600)
     return principal

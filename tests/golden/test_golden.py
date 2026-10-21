@@ -62,7 +62,7 @@ def test_single_claim_hash_is_stable_across_runs():
         }
     ).to_claim()
     hashes = {audit.trace_hash(engine.check(claim)) for _ in range(3)}
-    assert hashes == {"sha256:bcd3ececb033e369331206405ba5b4b6a79ff3d00b3c0bc396f6c4647788d8ba"}
+    assert hashes == {"sha256:9ada1a41850fb2a141bf258471d53a93fdf427942d06266913d4a37b70631e6b"}
 
 
 def test_dataset_has_forty_four_claims_covering_every_rule(outcomes):

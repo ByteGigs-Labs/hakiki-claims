@@ -128,5 +128,5 @@ def result() -> dict:
         "revenue_at_risk_kes": 45000,
         "trace": [{"step": 1, "rule": "R3-MissingPreauth", "result": "fail", "stv": [0.95, 0.92]}],
         "fixes": [{"action": "Attach pre-authorisation reference", "flips_to": "PASS"}],
-        "rulebook_version": "sha-rules-2026.10.0",
+        "rulebook_version": "sha-rules-2026.10.1",
     }

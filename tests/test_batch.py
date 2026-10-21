@@ -223,3 +223,35 @@ def test_batches_orphaned_by_a_restart_are_marked_failed(session, db):
     db.refresh(stuck)
     db.refresh(fresh)
     assert (stuck.status, fresh.status) == ("failed", "queued")
+
+
+def outcomes(db, tenant_id):
+    rows = db.scalars(
+        select(ClaimChecked)
+        .where(ClaimChecked.tenant_id == tenant_id)
+        .order_by(ClaimChecked.checked_at, ClaimChecked.row_number)
+    )
+    return [(r.claim_ref, r.verdict, r.failing_rules, r.trace_hash, r.row_number) for r in rows]
+
+
+def test_parallel_processing_matches_sequential_processing(
+    client, db, make_user, login, make_tenant, monkeypatch
+):
+    content = (SYNTHETIC / "claims.csv").read_bytes()
+    results = {}
+    for workers in (1, 3):
+        monkeypatch.setattr(get_settings(), "batch_workers", workers)
+        tenant = make_tenant(f"Tenant {workers}")
+        caller = login(make_user(f"clerk{workers}@mercy.test", tenant))
+        for _ in range(2):
+            assert upload(caller, content).status_code == 202
+        results[workers] = outcomes(db, tenant.id)
+    assert len(results[1]) == 88 and results[1] == results[3]
+    assert any(item[2] for item in results[1])
+
+
+def test_small_batches_stay_in_process(monkeypatch):
+    from api.services import batches
+
+    monkeypatch.setattr(get_settings(), "batch_workers", 4)
+    assert batches._worker_count(3) == 1 and batches._worker_count(50) == 4

@@ -1,4 +1,5 @@
 import logging
+import os
 from collections import Counter
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
@@ -6,14 +7,34 @@ from uuid import UUID
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
+from api.config import get_settings
 from api.db.models import Batch, ClaimChecked, Tenant, User
 from api.db.session import get_engine
 from api.security import Principal, Role
-from api.services.checks import check_and_record
+from api.services.checks import patient_history, prior_summary, record_check
 from ingest.csv_import import ParsedBatch
 from reasoner.kb import load_kb
+from reasoner.parallel import check_all
 
 logger = logging.getLogger("hakiki.batch")
+
+PARALLEL_MIN_CLAIMS = 8
+DEFAULT_MAX_WORKERS = 4
+
+
+def _worker_count(claims: int) -> int:
+    configured = get_settings().batch_workers or min(DEFAULT_MAX_WORKERS, os.cpu_count() or 1)
+    return configured if claims >= PARALLEL_MIN_CLAIMS else 1
+
+
+def _priors_per_row(db: Session, principal: Principal, claims: list[dict]) -> list[list[dict]]:
+    history = patient_history(db, principal, {claim["patient_token"] for claim in claims})
+    priors = []
+    for claim in claims:
+        known = history[claim["patient_token"]]
+        priors.append([prior for ref, prior in known.items() if ref != claim["claim_ref"]])
+        known[claim["claim_ref"]] = prior_summary(claim)
+    return priors
 
 
 def create_batch(db: Session, principal: Principal, filename: str, parsed: ParsedBatch) -> Batch:
@@ -64,8 +85,13 @@ def process_batch(batch_id: UUID) -> None:
         batch.status = "processing"
         db.commit()
         try:
-            for item in list(batch.claims):
-                check_and_record(db, principal, item["claim"], batch.id, item["row"])
+            items = list(batch.claims)
+            claims = [item["claim"] for item in items]
+            priors = _priors_per_row(db, principal, claims)
+            for item, result in zip(
+                items, check_all(claims, priors, _worker_count(len(claims))), strict=True
+            ):
+                record_check(db, principal, item["claim"], result, batch.id, item["row"])
                 batch.processed += 1
                 db.commit()
             batch.summary = summarise(db, batch)
