@@ -13,8 +13,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from api.config import get_settings
-from api.db.models import Tenant, User, UserSession
+from api.db.models import ApiKey, Tenant, User, UserSession
 from api.db.session import get_db
+
+KEY_TOUCH_INTERVAL = timedelta(minutes=1)
 
 _hasher = PasswordHasher()
 _DUMMY_HASH = _hasher.hash(secrets.token_urlsafe(16))
@@ -33,6 +35,7 @@ class Principal:
     name: str
     facility: str
     role: Role
+    api_key_id: UUID | None = None
 
 
 def hash_password(password: str) -> str:
@@ -99,3 +102,49 @@ def require_roles(*roles: Role) -> Callable[[Principal], Principal]:
         return principal
 
     return dependency
+
+
+def create_api_key(db: Session, principal: Principal, name: str) -> tuple[ApiKey, str]:
+    prefix = secrets.token_hex(4)
+    key = f"hk_{prefix}_{secrets.token_urlsafe(24)}"
+    row = ApiKey(
+        tenant_id=principal.tenant_id,
+        created_by=principal.user_id,
+        name=name,
+        prefix=prefix,
+        key_hash=_token_hash(key),
+    )
+    db.add(row)
+    db.commit()
+    return row, key
+
+
+def _principal_from_key(db: Session, key: str) -> Principal | None:
+    found = db.execute(
+        select(ApiKey, User, Tenant)
+        .join(User, User.id == ApiKey.created_by)
+        .join(Tenant, Tenant.id == ApiKey.tenant_id)
+        .where(
+            ApiKey.key_hash == _token_hash(key),
+            ApiKey.revoked_at.is_(None),
+            User.is_active.is_(True),
+        )
+    ).first()
+    if not found:
+        return None
+    api_key, user, tenant = found
+    now = datetime.now(UTC)
+    if api_key.last_used_at is None or now - api_key.last_used_at > KEY_TOUCH_INTERVAL:
+        api_key.last_used_at = now
+        db.commit()
+    return Principal(user.id, tenant.id, user.name, tenant.name, Role.CLERK, api_key.id)
+
+
+def current_principal_or_key(request: Request, db: Session = Depends(get_db)) -> Principal:
+    scheme, _, credential = request.headers.get("authorization", "").partition(" ")
+    if scheme.lower() != "bearer":
+        return current_principal(request, db)
+    principal = _principal_from_key(db, credential.strip()) if credential else None
+    if not principal:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not authenticated")
+    return principal

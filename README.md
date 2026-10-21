@@ -319,7 +319,7 @@ Regenerate the synthetic dataset and its expected outcomes with `python -m scrip
 
 ### API
 
-All endpoints except `/health` need the session cookie from `POST /v1/auth/login`. Errors share one shape: `{"error": {"code", "message", "fields?"}}`.
+All endpoints except `/health` need the session cookie from `POST /v1/auth/login`. Programs can use an API key instead on the check, explanation and batch endpoints (see below). Errors share one shape: `{"error": {"code", "message", "fields?"}}`.
 
 | Endpoint | Purpose |
 |---|---|
@@ -333,6 +333,20 @@ All endpoints except `/health` need the session cookie from `POST /v1/auth/login
 | `GET /v1/citations/{rule}` | SHA document and section behind a rule |
 | `GET /v1/reports/overview?days=` | Revenue protected and at risk, daily activity and top failure causes (finance managers and admins) |
 | `GET /v1/audit/verify` | Verifies the tenant's hash chain |
+
+| `POST /v1/api-keys` · `GET /v1/api-keys` · `DELETE /v1/api-keys/{id}` | Admins create, list and revoke API keys (session only) |
+
+### API keys
+
+An admin creates a key with `POST /v1/api-keys {"name": "Billing system"}`. The full key (`hk_<prefix>_<secret>`) appears once in that response, and only its SHA-256 hash is stored. A key acts as a clerk of the admin's facility, can be revoked at any time, and has its own rate limit.
+
+```bash
+curl -X POST http://localhost:8000/v1/claims/check \
+  -H "Authorization: Bearer hk_..." -H "Content-Type: application/json" \
+  -d '{"claim_ref": "clm-1", "patient_id": "A1234567", "facility_id": "fac-12", "service_code": "svc-CS-01", "fund": "SHIF", "date_of_service": "2026-10-14", "amount_kes": 45000}'
+```
+
+A key works on `POST /v1/claims/check`, `GET /v1/claims/{trace_hash}/explanation`, `POST /v1/claims/batch` and the batch status and rows endpoints. Every other endpoint, including history and key management, needs a browser session.
 
 ### API contract
 

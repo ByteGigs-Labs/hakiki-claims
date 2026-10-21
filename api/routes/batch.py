@@ -22,7 +22,7 @@ from api.config import get_settings
 from api.db.models import Batch, ClaimChecked
 from api.db.session import get_db
 from api.ratelimit import batch_limit
-from api.security import Principal, current_principal
+from api.security import Principal, current_principal, current_principal_or_key
 from api.services.batches import create_batch, process_batch
 from ingest.csv_import import CsvImportError, parse_csv, safe_filename, template_csv
 
@@ -121,7 +121,7 @@ def recent_batches(
 @router.get("/{batch_id}")
 def batch_status(
     batch_id: UUID,
-    principal: Principal = Depends(current_principal),
+    principal: Principal = Depends(current_principal_or_key),
     db: Session = Depends(get_db),
 ) -> BatchStatus:
     return BatchStatus.model_validate(_owned_batch(db, principal, batch_id))
@@ -134,7 +134,7 @@ def batch_rows(
     verdict: Verdict | None = None,
     start: int = Query(0, alias="_start", ge=0),
     end: int = Query(20, alias="_end", ge=1),
-    principal: Principal = Depends(current_principal),
+    principal: Principal = Depends(current_principal_or_key),
     db: Session = Depends(get_db),
 ) -> list[BatchRow]:
     batch = _owned_batch(db, principal, batch_id)
