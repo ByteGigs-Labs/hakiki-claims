@@ -6,9 +6,18 @@
 
 ---
 
+## Demo video
+
+[![Watch the three-minute demo](docs/screenshots/03-verdict.png)](docs/demo/hakiki-demo.mp4)
+
+A three-minute walk through a check, the glass box, a fix, a batch and the overview, on synthetic data. Click the picture to play it.
+
 ## Screenshots
 
 Captured from the seeded demo, so every claim you see is synthetic. Patient identifiers are hashed on arrival and never shown.
+
+<details>
+<summary><b>Open the screenshots</b> (twelve screens: verdict, glass box, fixes, Kiswahili, batch, overview, history, team and more)</summary>
 
 ### Know before you submit
 
@@ -50,17 +59,31 @@ Finance managers see what Hakiki caught before SHA did: claims fixed before subm
 
 ![Overview with revenue protected, revenue at risk, daily activity and failure causes](docs/screenshots/02-overview.png)
 
+### Show the logic
+
+Open any step to see the exact facts the rule matched, written as MeTTa atoms, and the rule's own source.
+
+![A trace step opened to show the matched facts and the MeTTa rule](docs/screenshots/11-show-the-logic.png)
+
 ### Replay any check
 
 Every check is kept in a hash-chained log. Open one from the history to see exactly how it was decided.
 
 ![Claims history with a stored check opened beside it](docs/screenshots/09-history-replay.png)
 
+### Your team
+
+Admins add people, set what each can see, and switch off access. API keys for billing systems are managed the same way.
+
+![Team page with the add-a-person form and the list of people](docs/screenshots/12-team.png)
+
 ### Sign in, and on a phone
 
 | Sign in | On a phone |
 |---|---|
 | ![Sign-in page with the glass cube](docs/screenshots/01-login.png) | ![Verdict on a 390px wide screen](docs/screenshots/10-mobile.png) |
+
+</details>
 
 ---
 
