@@ -16,6 +16,8 @@ class KnowledgeBase:
     services: tuple[dict, ...]
     referral_funds: tuple[str, ...]
     program: str
+    premises: dict
+    directory: Path
 
     def rule(self, rule_id: str) -> dict:
         return self.citations["rules"][rule_id]
@@ -40,7 +42,12 @@ class KnowledgeBase:
             "verified": rule["verified"],
             "quote": rule["quote"],
             "note": rule["note"],
+            "metta_source": self.rule_source(rule_id),
         }
+
+    def rule_source(self, rule_id: str) -> str:
+        (path,) = (self.directory / "rules").glob(f"{rule_id.lower()}_*.metta")
+        return path.read_text()
 
     def contracted(self, facility: dict, fund: str, on: date) -> bool:
         return any(
@@ -67,4 +74,6 @@ def load_kb(directory: Path = KB_DIR) -> KnowledgeBase:
         services=tuple(sorted(services["services"], key=lambda s: s["id"])),
         referral_funds=tuple(services["referral_funds"]),
         program="\n".join(path.read_text() for path in programs),
+        premises=read_json("premises.json") if (directory / "premises.json").exists() else {},
+        directory=directory,
     )

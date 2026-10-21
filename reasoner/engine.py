@@ -2,7 +2,7 @@ import argparse
 import json
 import re
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from string import Formatter
 
 from hyperon import ExpressionAtom, GroundedAtom, MeTTa, SymbolAtom
@@ -10,6 +10,7 @@ from hyperon import ExpressionAtom, GroundedAtom, MeTTa, SymbolAtom
 from reasoner import audit
 from reasoner.facts import claim_atoms, reference_atoms
 from reasoner.kb import IMPLEMENTED_RULES, KnowledgeBase, load_kb
+from reasoner.premises import premises_for
 
 VERDICT_RANK = {"PASS": 0, "AT_RISK": 1, "WILL_FAIL": 2}
 SCORE_PRECISION = 4
@@ -24,6 +25,7 @@ class RuleResult:
     reason: str
     detail: dict
     fix: tuple | None
+    premises: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -74,7 +76,10 @@ def _run(metta: MeTTa, expression: str):
 
 
 def evaluate(
-    claim: dict, history: Sequence[dict] = (), kb: KnowledgeBase | None = None
+    claim: dict,
+    history: Sequence[dict] = (),
+    kb: KnowledgeBase | None = None,
+    explain: bool = False,
 ) -> Evaluation:
     kb = kb or load_kb()
     if not CLAIM_REFERENCE.match(claim["claim_ref"]):
@@ -91,8 +96,21 @@ def evaluate(
     for result in reversed(raw_results):
         cons = f"(Cons {result} {cons})"
     _, name, (_, strength, confidence) = to_python(_run(metta, f"(combine {cons})"))
+    results = [_parse_result(to_python(atom)) for atom in raw_results]
+    if explain:
+        results = [
+            replace(
+                result,
+                premises=tuple(
+                    premises_for(
+                        metta, kb, claim, result.rule, result.outcome, result.reason, result.detail
+                    )
+                ),
+            )
+            for result in results
+        ]
     return Evaluation(
-        results=tuple(_parse_result(to_python(atom)) for atom in raw_results),
+        results=tuple(results),
         verdict=name,
         strength=_round(strength),
         confidence=_round(confidence),
@@ -160,6 +178,7 @@ def build_trace(kb: KnowledgeBase, claim: dict, evaluation: Evaluation) -> list[
             "citation": f"kb/citations.json#{result.rule}",
             "reason": result.reason,
             "values": _used_values(kb, claim, result),
+            "premises": list(result.premises),
         }
         if result.outcome != "skip":
             step["stv"] = [result.strength, result.confidence]
@@ -171,7 +190,7 @@ def check(claim: dict, history: Sequence[dict] = (), kb: KnowledgeBase | None = 
     from reasoner.fixes import find_fixes
 
     kb = kb or load_kb()
-    evaluation = evaluate(claim, history, kb)
+    evaluation = evaluate(claim, history, kb, explain=True)
     return {
         "claim": claim["claim_ref"],
         "verdict": evaluation.verdict,

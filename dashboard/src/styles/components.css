@@ -1054,3 +1054,29 @@
 .citation__note--ok {
   background: var(--sunk);
 }
+
+.trace__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trace__logic {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-s);
+  background: var(--sunk);
+  animation: rise 0.4s var(--ease-out) both;
+}
+
+.trace__atoms {
+  margin: 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--graphite);
+  white-space: pre;
+}

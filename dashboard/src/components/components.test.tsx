@@ -10,6 +10,7 @@ import { VerdictMark } from "./VerdictMark";
 
 vi.mock("../lib/api", () => ({
   fetchReference: () => Promise.resolve({ rules: [{ id: "R3", name: "Pre-authorisation" }] }),
+  fetchCitation: () => Promise.resolve({ metta_source: "(= (check-r3 $c) (Result R3 fail))" }),
 }));
 
 const fix: Fix = {
@@ -84,6 +85,17 @@ describe("TraceTimeline", () => {
     expect(onCite).toHaveBeenCalledWith("R3");
   });
 
+  it("shows the matched atoms and the rule's MeTTa source on demand", async () => {
+    const withPremises = [{ ...steps[0]!, premises: ["(PreauthRequired svc-CS-01 SHIF)"] }];
+    render(<TraceTimeline steps={withPremises} onCite={vi.fn()} />);
+    expect(screen.queryByText("(PreauthRequired svc-CS-01 SHIF)")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: /show the logic/i }));
+    expect(screen.getByText("(PreauthRequired svc-CS-01 SHIF)")).toBeInTheDocument();
+    expect(await screen.findByText(/check-r3/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /hide the logic/i }));
+    expect(screen.queryByText(/check-r3/)).toBeNull();
+  });
+
   it("renders text as text and never as markup", () => {
     const hostile: TraceStep[] = [{ ...steps[0]!, fact: "<img src=x onerror=alert(1)>" }];
     const { container } = render(<TraceTimeline steps={hostile} onCite={vi.fn()} />);
@@ -100,7 +112,7 @@ describe("verdict visuals", () => {
     revenue_at_risk_kes: 45000,
     trace: [],
     fixes: [],
-    rulebook_version: "sha-rules-2026.10.0",
+    rulebook_version: "sha-rules-2026.10.1",
     trace_hash: "sha256:abc",
     prev_hash: "sha256:def",
   };

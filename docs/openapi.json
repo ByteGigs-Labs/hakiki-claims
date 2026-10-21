@@ -270,6 +270,10 @@
             "title": "Effective",
             "type": "string"
           },
+          "metta_source": {
+            "title": "Metta Source",
+            "type": "string"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -309,7 +313,8 @@
           "effective",
           "verified",
           "quote",
-          "note"
+          "note",
+          "metta_source"
         ],
         "title": "Citation",
         "type": "object"
@@ -1022,6 +1027,14 @@
           "fact": {
             "title": "Fact",
             "type": "string"
+          },
+          "premises": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Premises",
+            "type": "array"
           },
           "reason": {
             "title": "Reason",

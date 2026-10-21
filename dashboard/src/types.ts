@@ -30,6 +30,7 @@ export interface TraceStep {
   values: Record<string, string | number>;
   stv?: [number, number];
   citation: string;
+  premises?: string[];
 }
 
 export interface Fix {
@@ -96,6 +97,7 @@ export interface Citation {
   verified: boolean;
   quote: string;
   note: string;
+  metta_source: string;
 }
 
 export interface Narration {

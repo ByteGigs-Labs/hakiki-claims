@@ -42,6 +42,7 @@ const traceStep: Keys<TraceStep> = {
   values: true,
   stv: true,
   citation: true,
+  premises: true,
 };
 
 const fix: Keys<Fix> = {

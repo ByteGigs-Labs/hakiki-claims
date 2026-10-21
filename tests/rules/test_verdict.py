@@ -15,7 +15,7 @@ def test_missing_preauth_will_fail_with_the_readme_example_values():
     assert result["verdict"] == "WILL_FAIL"
     assert result["truth_value"] == {"strength": 0.95, "confidence": 0.92}
     assert result["revenue_at_risk_kes"] == 45000
-    assert result["rulebook_version"] == "sha-rules-2026.10.0"
+    assert result["rulebook_version"] == "sha-rules-2026.10.1"
 
 
 def test_unconfirmed_membership_is_at_risk_with_partial_revenue_at_risk():

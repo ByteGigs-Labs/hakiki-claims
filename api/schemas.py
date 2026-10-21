@@ -21,6 +21,7 @@ class TraceStep(BaseModel):
     values: dict[str, str | int | float]
     stv: tuple[float, float] | None = None
     citation: str
+    premises: list[str] = []
 
 
 class Fix(BaseModel):
@@ -62,6 +63,7 @@ class Citation(BaseModel):
     verified: bool
     quote: str
     note: str
+    metta_source: str
 
 
 class RuleCount(BaseModel):

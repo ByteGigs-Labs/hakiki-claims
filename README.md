@@ -177,7 +177,7 @@ Each rule cites the SHA document and regulation it relies on, with a short quote
   "fixes": [
     { "action": "Attach pre-authorisation reference", "flips_to": "PASS" }
   ],
-  "rulebook_version": "sha-rules-2026.10.0",
+  "rulebook_version": "sha-rules-2026.10.1",
   "trace_hash": "sha256:…",
   "prev_hash": "sha256:…"
 }
@@ -255,7 +255,7 @@ hakiki-claims/
 │   ├── reference/           # tariffs, packages, facility levels (data atoms)
 │   ├── citations.json       # rule → SHA document + section
 │   ├── combine.metta        # combines rule outcomes into a verdict
-│   └── VERSION              # rulebook version, e.g. sha-rules-2026.10.0
+│   └── VERSION              # rulebook version, e.g. sha-rules-2026.10.1
 ├── reasoner/
 │   ├── engine.py            # loads rulebook, runs checks via hyperon
 │   ├── trace.py             # fired rules → trace tree
@@ -281,6 +281,16 @@ hakiki-claims/
 ```
 
 ## 9. Quick Start
+
+Try it in two minutes. You need Docker and nothing else:
+
+```bash
+git clone https://github.com/ByteGigs-Labs/hakiki-claims.git
+cd hakiki-claims
+./scripts/demo.sh        # creates .env with fresh secrets, starts the stack, seeds it, prints the login
+```
+
+Or do the steps by hand:
 
 ```bash
 git clone https://github.com/ByteGigs-Labs/hakiki-claims.git
@@ -315,7 +325,7 @@ python -m reasoner.engine --claim data/synthetic/missing_preauth.json
 
 Install the git hooks (ruff, gitleaks) once with `pip install pre-commit && pre-commit install`. CI runs the same checks on every push, plus the full test suite against Postgres and Redis.
 
-Regenerate the synthetic dataset and its expected outcomes with `python -m scripts.build_synthetic`.
+Regenerate the synthetic dataset and its expected outcomes with `python -m scripts.build_synthetic`. To change a rule, follow `kb/UPDATING.md`; `python -m reasoner.impact --base origin/main` lists every verdict the change moves, and CI fails a rule change that does not bump `kb/VERSION`.
 
 ### API
 
@@ -430,4 +440,4 @@ Revenue at risk is the billed amount for `WILL_FAIL`, the billed amount times th
 
 ## 15. License
 
-MIT for code. The rulebook files in `kb/` are CC BY 4.0, with attribution to the source SHA documents.
+MIT for code. The rulebook files in `kb/` are CC BY 4.0 (see `kb/LICENSE`), with attribution to the source SHA documents. See `CONTRIBUTING.md` before opening a pull request.
