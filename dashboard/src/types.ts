@@ -170,3 +170,34 @@ export interface ApiError {
     fields?: { field: string; message: string }[];
   };
 }
+
+export type Role = Identity["role"];
+
+export interface ManagedUser {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface NewUser {
+  name: string;
+  email: string;
+  role: Role;
+  password: string;
+}
+
+export interface ApiKeySummary {
+  id: string;
+  name: string;
+  prefix: string;
+  created_at: string;
+  last_used_at: string | null;
+  revoked_at: string | null;
+}
+
+export interface CreatedApiKey extends ApiKeySummary {
+  key: string;
+}

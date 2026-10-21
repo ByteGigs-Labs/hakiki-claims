@@ -11,6 +11,9 @@ const NAV: { to: string; label: string; icon: IconName; roles?: Identity["role"]
   { to: "/check", label: "Check claim", icon: "shield" },
   { to: "/batch", label: "Batch check", icon: "upload" },
   { to: "/claims", label: "Claims history", icon: "history" },
+  { to: "/team", label: "Team", icon: "users", roles: ["admin"] },
+  { to: "/keys", label: "API keys", icon: "key", roles: ["admin"] },
+  { to: "/account", label: "Password", icon: "shield" },
 ];
 
 export function Shell() {

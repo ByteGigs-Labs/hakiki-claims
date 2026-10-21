@@ -12,6 +12,9 @@ import { authProvider } from "./providers/authProvider";
 const OverviewPage = lazy(() => import("./pages/overview").then((m) => ({ default: m.OverviewPage })));
 const CheckClaimPage = lazy(() => import("./pages/check").then((m) => ({ default: m.CheckClaimPage })));
 const BatchPage = lazy(() => import("./pages/batch").then((m) => ({ default: m.BatchPage })));
+const TeamPage = lazy(() => import("./pages/team").then((m) => ({ default: m.TeamPage })));
+const KeysPage = lazy(() => import("./pages/keys").then((m) => ({ default: m.KeysPage })));
+const AccountPage = lazy(() => import("./pages/account").then((m) => ({ default: m.AccountPage })));
 const ClaimList = lazy(() => import("./pages/claims/list").then((m) => ({ default: m.ClaimList })));
 
 
@@ -27,6 +30,9 @@ export default function App() {
           { name: "check", list: "/check", meta: { label: "Check claim" } },
           { name: "batch", list: "/batch", meta: { label: "Batch check" } },
           { name: "claims", list: "/claims", meta: { label: "Claims history" } },
+          { name: "team", list: "/team", meta: { label: "Team" } },
+          { name: "keys", list: "/keys", meta: { label: "API keys" } },
+          { name: "account", list: "/account", meta: { label: "Password" } },
         ]}
         options={{ syncWithLocation: false, disableTelemetry: true }}
       >
@@ -43,6 +49,9 @@ export default function App() {
             <Route path="/check" element={<CheckClaimPage />} />
             <Route path="/batch" element={<BatchPage />} />
             <Route path="/claims" element={<ClaimList />} />
+            <Route path="/team" element={<TeamPage />} />
+            <Route path="/keys" element={<KeysPage />} />
+            <Route path="/account" element={<AccountPage />} />
           </Route>
           <Route
             element={
