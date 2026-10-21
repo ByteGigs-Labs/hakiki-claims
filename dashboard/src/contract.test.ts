@@ -69,7 +69,7 @@ const overview: Keys<Overview> = {
   daily: true,
 };
 
-const schemas = openapi.components.schemas as Record<string, { properties: Record<string, unknown> }>;
+const schemas = openapi.components.schemas as unknown as Record<string, { properties: Record<string, unknown> }>;
 const names = (schema: Record<string, true>) => Object.keys(schema).sort();
 const properties = (name: string) => Object.keys(schemas[name]!.properties).sort();
 
