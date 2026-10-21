@@ -19,6 +19,7 @@ def install_error_handlers(app: FastAPI) -> None:
             {"field": ".".join(str(part) for part in error["loc"][1:]), "message": error["msg"]}
             for error in exc.errors()
         ]
+        logger.info("validation_error on fields %s", [item["field"] for item in fields])
         return JSONResponse(error_body("validation_error", "Invalid request", fields=fields), 422)
 
     @app.exception_handler(StarletteHTTPException)
@@ -30,4 +31,8 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(Exception)
     async def unexpected_error(request: Request, exc: Exception) -> JSONResponse:
         logger.error("unhandled %s on %s %s", type(exc).__name__, request.method, request.url.path)
-        return JSONResponse(error_body("server_error", "Something went wrong"), 500)
+        return JSONResponse(
+            error_body("server_error", "Something went wrong"),
+            500,
+            headers={"X-Request-ID": request.scope.get("state", {}).get("request_id", "-")},
+        )
