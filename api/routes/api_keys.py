@@ -16,6 +16,8 @@ MAX_ACTIVE_KEYS = 20
 
 
 class NewKey(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     name: str = Field(min_length=1, max_length=80)
 
 

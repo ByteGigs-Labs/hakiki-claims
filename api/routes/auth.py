@@ -1,18 +1,29 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
 from api.config import get_settings
+from api.db.models import User
 from api.db.session import get_db
 from api.ratelimit import (
     clear_login_failures,
     ensure_account_not_locked,
     login_ip_limit,
+    password_limit,
     record_login_failure,
 )
-from api.security import Principal, authenticate, create_session, current_principal, end_session
+from api.security import (
+    MIN_PASSWORD_LENGTH,
+    Principal,
+    authenticate,
+    change_password,
+    create_session,
+    current_principal,
+    end_session,
+    verify_password,
+)
 
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
@@ -20,6 +31,13 @@ router = APIRouter(prefix="/v1/auth", tags=["auth"])
 class LoginRequest(BaseModel):
     email: str = Field(max_length=254)
     password: str = Field(max_length=256)
+
+
+class PasswordChange(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    current_password: str = Field(max_length=256)
+    new_password: str = Field(min_length=MIN_PASSWORD_LENGTH, max_length=256)
 
 
 class Identity(BaseModel):
@@ -76,3 +94,18 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)) 
 @router.get("/me")
 def me(principal: Principal = Depends(current_principal)) -> Identity:
     return _identity(principal)
+
+
+@router.post("/password", status_code=status.HTTP_204_NO_CONTENT)
+def update_password(
+    body: PasswordChange,
+    request: Request,
+    principal: Principal = Depends(password_limit),
+    db: Session = Depends(get_db),
+) -> None:
+    user = db.get(User, principal.user_id)
+    if not verify_password(user.password_hash, body.current_password):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Current password is incorrect")
+    if body.new_password == body.current_password:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Choose a different password")
+    change_password(db, user, body.new_password, request.cookies.get(get_settings().cookie_name))

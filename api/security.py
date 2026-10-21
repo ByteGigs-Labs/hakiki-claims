@@ -9,13 +9,14 @@ from uuid import UUID
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError
 from fastapi import Depends, HTTPException, Request, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from api.config import get_settings
 from api.db.models import ApiKey, Tenant, User, UserSession
 from api.db.session import get_db
 
+MIN_PASSWORD_LENGTH = 10
 KEY_TOUCH_INTERVAL = timedelta(minutes=1)
 
 _hasher = PasswordHasher()
@@ -148,3 +149,12 @@ def current_principal_or_key(request: Request, db: Session = Depends(get_db)) ->
     if not principal:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not authenticated")
     return principal
+
+
+def change_password(db: Session, user: User, new_password: str, keep_token: str | None) -> None:
+    user.password_hash = hash_password(new_password)
+    others = delete(UserSession).where(UserSession.user_id == user.id)
+    if keep_token:
+        others = others.where(UserSession.token_hash != _token_hash(keep_token))
+    db.execute(others)
+    db.commit()

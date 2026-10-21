@@ -334,6 +334,8 @@ All endpoints except `/health` need the session cookie from `POST /v1/auth/login
 | `GET /v1/reports/overview?days=` | Revenue protected and at risk, daily activity and top failure causes (finance managers and admins) |
 | `GET /v1/audit/verify` | Verifies the tenant's hash chain |
 
+| `GET /v1/users` · `POST /v1/users` · `PATCH /v1/users/{id}` | Admins manage their facility's team (add, change role, deactivate) |
+| `POST /v1/auth/password` | Change your own password; other sessions end |
 | `POST /v1/api-keys` · `GET /v1/api-keys` · `DELETE /v1/api-keys/{id}` | Admins create, list and revoke API keys (session only) |
 
 ### API keys
@@ -347,6 +349,19 @@ curl -X POST http://localhost:8000/v1/claims/check \
 ```
 
 A key works on `POST /v1/claims/check`, `GET /v1/claims/{trace_hash}/explanation`, `POST /v1/claims/batch` and the batch status and rows endpoints. Every other endpoint, including history and key management, needs a browser session.
+
+### Performance
+
+A claim takes 0.4 s on average through the reasoning engine, because every check also re-runs the claim to prove each suggested fix. Batches run the engine in parallel worker processes (`BATCH_WORKERS`, default up to 4) and write results back in file order, so the audit chain and the within-file duplicate checks give exactly the same answers as sequential processing (a test compares the trace hashes).
+
+Measured with `python -m scripts.benchmark 100 500 --workers 1 4` on a 4-core laptop, engine only, synthetic claims:
+
+| Claims | 1 worker | 4 workers |
+|---|---|---|
+| 100 | 41 s | 26 s |
+| 500 | 221 s | 116 s |
+
+Each worker pays about a second to start, so the gain is largest on big files.
 
 ### API contract
 

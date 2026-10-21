@@ -5,7 +5,7 @@ import redis
 from fastapi import Depends, HTTPException, Request, status
 
 from api.config import get_settings
-from api.security import Principal, current_principal_or_key
+from api.security import Principal, current_principal, current_principal_or_key
 
 
 @lru_cache
@@ -87,4 +87,9 @@ def check_limit(principal: Principal = Depends(current_principal_or_key)) -> Pri
 
 def batch_limit(principal: Principal = Depends(current_principal_or_key)) -> Principal:
     hit(f"rl:batch:{_subject(principal)}", get_settings().batch_per_hour, 3600)
+    return principal
+
+
+def password_limit(principal: Principal = Depends(current_principal)) -> Principal:
+    hit(f"rl:password:{principal.user_id}", get_settings().password_changes_per_hour, 3600)
     return principal
