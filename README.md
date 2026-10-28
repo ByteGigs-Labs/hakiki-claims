@@ -467,6 +467,8 @@ Revenue at risk is the billed amount for `WILL_FAIL`, the billed amount times th
 | Backend & security | — | `api/`, `ingest/`, audit log |
 | Product & frontend | — | `dashboard/`, customer interviews, demo, pitch |
 
+![First Runners Basix Market; State of the Art Hackathon](docs/screenshots/HVs-DQ9WkAALFH7.jpeg)
+
 ## 15. License
 
 MIT for code. The rulebook files in `kb/` are CC BY 4.0 (see `kb/LICENSE`), with attribution to the source SHA documents. See `CONTRIBUTING.md` before opening a pull request.
